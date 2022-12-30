@@ -7,6 +7,7 @@ import app.daos.UserDao;
 import app.repositories.UserProfileRepository;
 import app.services.CityService;
 import app.services.DatabaseService;
+import app.services.UserService;
 import http.ContentType;
 import http.HttpStatus;
 import lombok.AccessLevel;
@@ -47,7 +48,7 @@ public class App implements ServerApp {
 
         // Controllers
         CityController cityController = new CityController(new CityService());
-        UserController userController = new UserController(userProfileRepository);
+        UserController userController = new UserController(userProfileRepository, new UserService());
 
         setCityController(cityController);
         setUserController(userController);
@@ -108,6 +109,7 @@ public class App implements ServerApp {
                 // paths as specified in openapi on moodle
                 if (request.getPathname().equals("/users")) {
                     // Register a new user
+                    return getUserController().createUser(request.getBody());
                 }
                 if (request.getPathname().equals("/sessions")) {
                     // Login with existing user

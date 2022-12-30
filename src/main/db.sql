@@ -2,15 +2,25 @@
 DROP TABLE IF EXISTS tradings;
 DROP TABLE IF EXISTS stack;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS cards;
 DROP TABLE IF EXISTS cardtypes;
 DROP TABLE IF EXISTS elements;
 
 --CREATE TABLES---------------------------------------------------------------------------------------------------
+CREATE TABLE roles (
+                       role_id SERIAL PRIMARY KEY,
+                       name VARCHAR(255)
+);
+
 CREATE TABLE users (
                        user_id UUID PRIMARY KEY,
-                       password VARCHAR (50) NOT NULL,
+                       password VARCHAR (255) NOT NULL,
                        username VARCHAR(255) UNIQUE NOT NULL,
+                       role_id INT NOT NULL,
+                       CONSTRAINT fk_role
+                           FOREIGN KEY(role_id)
+                               REFERENCES roles(role_id),
                        elo SMALLINT NOT NULL,
                        games_played SMALLINT NOT NULL,
                        games_won SMALLINT NOT NULL,
@@ -19,7 +29,8 @@ CREATE TABLE users (
 
 CREATE TABLE cardtypes (
                            cardtype_id SERIAL PRIMARY KEY,
-                           name VARCHAR(255) UNIQUE NOT NULL
+                           name VARCHAR(255) UNIQUE NOT NULL,
+                           monster BOOLEAN NOT NULL
 );
 
 CREATE TABLE elements (
@@ -83,9 +94,24 @@ ALTER TABLE users ALTER COLUMN games_won SET DEFAULT 0;
 ALTER TABLE users ALTER COLUMN coins SET DEFAULT 20;
 ALTER TABLE stack ALTER COLUMN used_in_deck SET DEFAULT false;
 ALTER TABLE stack ALTER COLUMN used_in_trade SET DEFAULT false;
+ALTER TABLE cardtypes ALTER COLUMN monster SET DEFAULT true;
 
 --INSERTS---------------------------------------------------------------------------------------------------------
-INSERT INTO cardtypes (name) VALUES ('spell');
+INSERT INTO roles (name) VALUES ('admin');
+INSERT INTO roles (name) VALUES ('user');
+
+--pw hashed SHA256
+INSERT INTO users (user_id, password, username, role_id) VALUES
+    (gen_random_uuid(), '5fcf82bc15aef42cd3ec93e6d4b51c04df110cf77ee715f62f3f172ff8ed9de9', 'admin', 1);
+--pw: adminpw
+INSERT INTO users (user_id, password, username, role_id) VALUES
+    (gen_random_uuid(), '80280cec33e73ad0b9cc9c184ccdd7b49bbca06a7c2bf969d44f97b60f101177', 'testuser', 2);
+--pw: testuserpw
+INSERT INTO users (user_id, password, username, role_id) VALUES
+    (gen_random_uuid(), 'b285a60f7e0e3d95e5f0eaf3e86df409e1082b6f6d545c993f1de9b1100504fb', 'seconduser', 2);
+--pw: seconduserpw
+
+INSERT INTO cardtypes (name, monster) VALUES ('spell', false);
 INSERT INTO cardtypes (name) VALUES ('goblin');
 INSERT INTO cardtypes (name) VALUES ('dragon');
 INSERT INTO cardtypes (name) VALUES ('wizzard');
@@ -183,8 +209,8 @@ INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30
 INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 8, 2);
 INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 8, 3);
 
-select
-    cards.name || e.name || c.name as name, cards.damage, c.cardtype_id, e.element_id
-from cards
-    join cardtypes c on c.cardtype_id = cards.cardtype_id
-    join elements e on e.element_id = cards.element_id;
+select cards.name || e.name || c.name as name, cards.damage, c.monster as isMonster, e.element_id from cards
+                                                                                                           join cardtypes c on c.cardtype_id = cards.cardtype_id
+                                                                                                           join elements e on e.element_id = cards.element_id;
+
+select * from users join roles r on users.role_id = r.role_id;

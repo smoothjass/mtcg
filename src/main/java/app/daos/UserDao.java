@@ -2,15 +2,18 @@ package app.daos;
 
 import app.models.City;
 import app.models.User;
+import com.google.common.hash.Hashing;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.UUID;
 
 // The City Data Access Object implements the DAO interface
 // we tell the interface that our Type (T) will be a City
@@ -27,6 +30,19 @@ public class UserDao implements Dao<User, Integer> {
 
     @Override
     public User create(User user) throws SQLException {
+        // first check somewhere of username is unique, probably with getAll
+        String query = "INSERT INTO users (user_id, password, username) VALUES(?,?,?)";
+        PreparedStatement stmt = getConnection().prepareStatement(query);
+        stmt.setString(1, String.valueOf(UUID.randomUUID()));
+        String sha256hex = Hashing.sha256()
+                .hashString(user.getPassword(), StandardCharsets.UTF_8)
+                .toString();
+        stmt.setString(2, sha256hex);
+        stmt.setString(3, user.getUsername());
+        ResultSet result = stmt.executeQuery();
+        User newUser = new User(
+            // TODO stuff from db da hinein
+        );
         return null;
     }
 
@@ -37,7 +53,7 @@ public class UserDao implements Dao<User, Integer> {
         PreparedStatement stmt = getConnection().prepareStatement(query);
 
         ResultSet result = stmt.executeQuery();
-
+/*
         while (result.next()) {
             User user = new User(
                 result.getInt(1),
@@ -47,7 +63,7 @@ public class UserDao implements Dao<User, Integer> {
 
             users.put(user.getId(), user);
         }
-
+*/
         return users;
     }
 

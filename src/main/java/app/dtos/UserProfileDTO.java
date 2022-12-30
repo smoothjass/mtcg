@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -22,11 +24,21 @@ public class UserProfileDTO {
     // we need to set JSON aliases so that jackson can
     // safely parse it
     @JsonAlias({"id"})
-    Integer id;
-    @JsonAlias({"name"})
-    String name;
-    @JsonAlias({"city"})
-    City city;
+    UUID id;
+    @JsonAlias({"password"})
+    String password;
+    @JsonAlias({"username"})
+    String username;
+    @JsonAlias({"role"})
+    String role;
+    @JsonAlias({"elo"})
+    int elo;
+    @JsonAlias({"games_played"})
+    int games_played;
+    @JsonAlias({"games_won"})
+    int games_won;
+    @JsonAlias({"coins"})
+    int coins;
 
     // Jackson needs the default constructor
     public UserProfileDTO() {}

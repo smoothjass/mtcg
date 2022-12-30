@@ -1,8 +1,11 @@
 package app.controllers;
 
 import app.dtos.UserProfileDTO;
+import app.models.User;
 import app.repositories.UserProfileRepository;
+import app.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import http.ContentType;
 import http.HttpStatus;
 import lombok.AccessLevel;
@@ -14,13 +17,13 @@ import server.Response;
 import java.util.ArrayList;
 
 // Our User Controller is using the database with repositories, DAOs, Models, (DTOs)
+@Setter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PRIVATE)
 public class UserController extends Controller {
-    @Setter(AccessLevel.PRIVATE)
-    @Getter(AccessLevel.PRIVATE)
     UserProfileRepository userProfileRepository;
-
+    private UserService userService;
     // we inject our repository, so we can mock the repository when testing the controller
-    public UserController(UserProfileRepository userProfileRepository) {
+    public UserController(UserProfileRepository userProfileRepository, UserService userService) {
         // always use the getter and setter
         // otherwise if we change the setter or getter we would
         // need to manually update all occurances of
@@ -28,6 +31,7 @@ public class UserController extends Controller {
         // wich is error prone so always remember we also use getter and setter
         // in the class itself
         setUserProfileRepository(userProfileRepository);
+        setUserService(userService);
     }
 
     // GET /user-profiles
@@ -98,5 +102,23 @@ public class UserController extends Controller {
             ContentType.JSON,
             "{ \"data\": null, \"error\": \"Request was malformed\" }"
         );
+    }
+
+    public Response createUser(String body) {
+        try {
+            User userData = getObjectMapper().readValue(body, User.class);
+            UserProfileDTO userProfile = getUserProfileRepository().postUser(userData);
+
+            return new Response(
+                    HttpStatus.CREATED,
+                    ContentType.JSON,
+                    "{\"description\": user successfully created, \"data\": " + body + ", \"error\": null }"
+            );
+            // TODO code 409
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

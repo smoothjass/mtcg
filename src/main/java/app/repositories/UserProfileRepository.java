@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.UUID;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter(AccessLevel.PRIVATE)
@@ -27,11 +28,11 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
     // hashmap takes a key and a value
     // Key will be the id of the user (Integer)
     // value would be the userProfile
-    HashMap<Integer, UserProfileDTO> userProfilesCache = new HashMap();
+    HashMap<UUID, UserProfileDTO> userProfilesCache = new HashMap();
     // {
     //   key: value,
-    //   1: new UserProfileDTO(),
-    //   2: new UserProfileDTO(),
+    //   uuid: new UserProfileDTO(),
+    //   uuid: new UserProfileDTO(),
     //
     // }
 
@@ -72,7 +73,11 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                 // cities since we can access a city by Id
                 // and we have the cityId on the user Object
                 // we can access a city in O(1)
+/*
+//das gehört eigentlich entkommentiert, aber ich hab das DTO geändert und mich damit noch nicht befasst
+
                 City city = cities.get(user.getCityId());
+
                 UserProfileDTO userProfile = new UserProfileDTO(
                     user.getId(),
                     user.getName(),
@@ -80,7 +85,7 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                 );
 
                 userProfilesCache.put(userProfile.getId(), userProfile);
-
+*/
                 // We do not want to iterate over all cities per user
                 // so, we implement a hashmap for our cities store
                 // otherwise our implementation would look like this
@@ -128,4 +133,16 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
 
         return userProfileDTO;
     }
+    public UserProfileDTO postUser(User data) {
+        try {
+            getUserDao().create(data);
+            UserProfileDTO userProfile = new UserProfileDTO(
+                    //stuff hineintun
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
 }
