@@ -117,8 +117,8 @@ public class CityDao implements Dao<City, Integer> {
     }
 
     @Override
-    public void update() throws SQLException {
-
+    public City update(String name, City city) throws SQLException {
+        return null;
     }
 
     @Override

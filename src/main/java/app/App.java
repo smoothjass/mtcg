@@ -61,19 +61,7 @@ public class App implements ServerApp {
         // check method
         switch (request.getMethod()) {
             case GET: {
-                // paths from in-class coding
-                // check path
-                if (request.getPathname().equals("/cities")) {
-                    return getCityController().getCities();
-                }
                 // check path and path variables
-                if (request.getPathname().matches("/user-profiles/\\d+")) {
-                    // extract the path variable from the path
-                    // you need to make sure its parseable
-                    Integer ID = parseInt(request.getPathname().split("/")[2]);
-                    // return getUserController().getUserProfile(ID);
-                }
-
                 // paths as specified in openapi on moodle
                 if (request.getPathname().matches("/users/[a-zA-Z0-9]*")) {
                     String username = request.getPathname().split("/")[2];
@@ -128,8 +116,10 @@ public class App implements ServerApp {
                 }
             }
             case PUT: {
-                if (request.getPathname().matches("/users/[a-z]+")) {
+                if (request.getPathname().matches("/users/[a-zA-Z0-9]*")) {
                     // Updates the user data for the given username.
+                    String username = request.getPathname().split("/")[2];
+                    return getUserController().updateUser(username, request.getBody());
                 }
                 if (request.getPathname().equals("/decks")) {
                     // Configures the deck with four provided cards

@@ -91,4 +91,29 @@ public class UserController extends Controller {
             throw new RuntimeException(e);
         }
     }
+
+    public Response updateUser(String username, String body) {
+        try {
+            User data = getObjectMapper().readValue(body, User.class);
+            UserProfileDTO userProfile = getUserProfileRepository().updateUser(username, data);
+            // parse to JSON string
+            String userProfileJSON = getObjectMapper().writeValueAsString(userProfile);
+
+            if (userProfile == null) {
+                return new Response(
+                        HttpStatus.NOT_FOUND,
+                        ContentType.JSON,
+                        "{ \"data\": null, \"error\": \"User not found\" }"
+                );
+            }
+
+            return new Response(
+                    HttpStatus.OK,
+                    ContentType.JSON,
+                    "{ \"description\": User successfully updated, \"data\": " + userProfileJSON + ", \"error\": null }"
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

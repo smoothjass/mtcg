@@ -61,6 +61,9 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                         user.getId(),
                         user.getPassword(),
                         user.getUsername(),
+                        user.getName(),
+                        user.getBio(),
+                        user.getImage(),
                         roles.get(user.getRole_id()).getName(),
                         user.getElo(),
                         user.getGames_played(),
@@ -91,6 +94,9 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                         user.getId(),
                         user.getPassword(),
                         user.getUsername(),
+                        user.getName(),
+                        user.getBio(),
+                        user.getImage(),
                         roles.get(user.getRole_id()).getName(),
                         user.getElo(),
                         user.getGames_played(),
@@ -110,11 +116,11 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
 
     public UserProfileDTO getByUsername(String username) {
         if (getUserProfilesCache().isEmpty()) {
-            System.out.println("cache empty, gettin all");
+            // System.out.println("cache empty, gettin all");
             getAll();
         }
         for (UserProfileDTO user: new ArrayList<>(userProfilesCache.values())) {
-            System.out.println(user.getUsername());
+            // System.out.println(user.getUsername());
             if (Objects.equals(user.getUsername(), username)) {
                 return user;
             }
@@ -122,4 +128,31 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
         return null;
     }
 
+    public UserProfileDTO updateUser(String username, User data) {
+        if(getByUsername(username) != null) {
+            //user exists -> do the update
+            try {
+                HashMap<Integer, Role> roles = getRoleDao().read();
+                User user = getUserDao().update(username, data);
+                UserProfileDTO userProfile = new UserProfileDTO(
+                        user.getId(),
+                        user.getPassword(),
+                        user.getUsername(),
+                        user.getName(),
+                        user.getBio(),
+                        user.getImage(),
+                        roles.get(user.getRole_id()).getName(),
+                        user.getElo(),
+                        user.getGames_played(),
+                        user.getGames_won(),
+                        user.getCoins()
+                );
+                userProfilesCache.put(userProfile.getId(), userProfile);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        // now either null because no such user, or updated dto
+        return getByUsername(username);
+    }
 }

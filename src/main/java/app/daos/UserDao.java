@@ -1,6 +1,5 @@
 package app.daos;
 
-import app.models.City;
 import app.models.User;
 import com.google.common.hash.Hashing;
 import lombok.AccessLevel;
@@ -50,11 +49,14 @@ public class UserDao implements Dao<User, UUID> {
                     (UUID) result.getObject(1),
                     result.getString(2),
                     result.getString(3),
-                    result.getInt(4),
-                    result.getInt(5),
-                    result.getInt(6),
+                    result.getString(4),
+                    result.getString(5),
+                    result.getString(6),
                     result.getInt(7),
-                    result.getInt(8)
+                    result.getInt(8),
+                    result.getInt(9),
+                    result.getInt(10),
+                    result.getInt(11)
             );
             return newUser;
         }
@@ -74,11 +76,14 @@ public class UserDao implements Dao<User, UUID> {
                     (UUID) result.getObject(1),
                     result.getString(2),
                     result.getString(3),
-                    result.getInt(4),
-                    result.getInt(5),
-                    result.getInt(6),
+                    result.getString(4),
+                    result.getString(5),
+                    result.getString(6),
                     result.getInt(7),
-                    result.getInt(8)
+                    result.getInt(8),
+                    result.getInt(9),
+                    result.getInt(10),
+                    result.getInt(11)
             );
 
             users.put(user.getId(), user);
@@ -87,8 +92,36 @@ public class UserDao implements Dao<User, UUID> {
     }
 
     @Override
-    public void update() throws SQLException {
+    public User update(String username, User user) throws SQLException {
+        String update = "UPDATE users SET name = ?, bio = ?, image = ? WHERE username = ?";
+        PreparedStatement stmt = getConnection().prepareStatement(update);
+        stmt.setString(1, user.getName());
+        stmt.setString(2, user.getBio());
+        stmt.setString(3, user.getImage());
+        stmt.setString(4, username);
+        int updateResult = stmt.executeUpdate();
 
+        String query = "SELECT * FROM users WHERE username = ?";
+        PreparedStatement stmt2 = getConnection().prepareStatement(query);
+        stmt2.setString(1, username);
+        ResultSet result = stmt2.executeQuery();
+        if (result.next()) {
+            User newUser = new User(
+                    (UUID) result.getObject(1),
+                    result.getString(2),
+                    result.getString(3),
+                    result.getString(4),
+                    result.getString(5),
+                    result.getString(6),
+                    result.getInt(7),
+                    result.getInt(8),
+                    result.getInt(9),
+                    result.getInt(10),
+                    result.getInt(11)
+            );
+            return newUser;
+        }
+        return null;
     }
 
     @Override

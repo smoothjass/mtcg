@@ -1,5 +1,7 @@
 package app.daos;
 
+import app.models.User;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -14,6 +16,6 @@ public interface Dao<T, ID> {
     // deleted object, but
     // we already have all the information on the client
     // we want to reduce complexity
-    void update() throws SQLException;
+    T update(String s, T t) throws SQLException;
     void delete() throws SQLException;
 }

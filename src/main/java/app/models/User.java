@@ -18,6 +18,12 @@ public class User {
     String password;
     @JsonAlias({"username"})
     String username;
+    @JsonAlias({"name"})
+    String name;
+    @JsonAlias({"bio"})
+    String bio;
+    @JsonAlias({"image"})
+    String image;
     @JsonAlias({"role_id"})
     int role_id;
     @JsonAlias({"elo"})

@@ -43,8 +43,8 @@ public class RoleDao implements Dao<Role, Integer>{
     }
 
     @Override
-    public void update() throws SQLException {
-
+    public Role update(String description, Role role) throws SQLException {
+        return null;
     }
 
     @Override

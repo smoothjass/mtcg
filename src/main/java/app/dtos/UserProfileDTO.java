@@ -29,6 +29,12 @@ public class UserProfileDTO {
     String password;
     @JsonAlias({"username"})
     String username;
+    @JsonAlias({"name"})
+    String name;
+    @JsonAlias({"bio"})
+    String bio;
+    @JsonAlias({"image"})
+    String image;
     @JsonAlias({"role"})
     String role;
     @JsonAlias({"elo"})
