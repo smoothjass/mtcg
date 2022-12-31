@@ -19,7 +19,7 @@ import java.util.UUID;
 // we tell the interface that our Type (T) will be a City
 // and our Type (ID) will be an Integer
 // See City Dao for details
-public class UserDao implements Dao<User, Integer> {
+public class UserDao implements Dao<User, UUID> {
     @Getter(AccessLevel.PRIVATE)
     @Setter(AccessLevel.PRIVATE)
     private Connection connection;
@@ -48,23 +48,27 @@ public class UserDao implements Dao<User, Integer> {
     }
 
     @Override
-    public HashMap<Integer, User> read() throws SQLException {
-        HashMap<Integer, User> users = new HashMap();
+    public HashMap<UUID, User> read() throws SQLException {
+        HashMap<UUID, User> users = new HashMap();
         String query = "SELECT * FROM users";
         PreparedStatement stmt = getConnection().prepareStatement(query);
 
         ResultSet result = stmt.executeQuery();
-/*
+
         while (result.next()) {
             User user = new User(
-                result.getInt(1),
-                result.getString(2),
-                result.getInt(3)
+                    (UUID) result.getObject(1),
+                    result.getString(2),
+                    result.getString(3),
+                    result.getInt(4),
+                    result.getInt(5),
+                    result.getInt(6),
+                    result.getInt(7),
+                    result.getInt(8)
             );
 
             users.put(user.getId(), user);
         }
-*/
         return users;
     }
 

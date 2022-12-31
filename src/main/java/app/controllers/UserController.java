@@ -108,13 +108,20 @@ public class UserController extends Controller {
         try {
             User userData = getObjectMapper().readValue(body, User.class);
             UserProfileDTO userProfile = getUserProfileRepository().postUser(userData);
-
-            return new Response(
-                    HttpStatus.CREATED,
-                    ContentType.JSON,
-                    "{\"description\": user successfully created, \"data\": " + body + ", \"error\": null }"
-            );
-            // TODO code 409
+            if (userProfile != null) {
+                return new Response(
+                        HttpStatus.CREATED,
+                        ContentType.JSON,
+                        "{\"description\": user successfully created, \"data\": " + body + ", \"error\": null }"
+                );
+            }
+            else{
+                return new Response(
+                        HttpStatus.CONFLICT,
+                        ContentType.JSON,
+                        "{\"description\": User with same username already registered, \"data\": " + body + ", \"error\": null }"
+                );
+            }
         } catch (JsonMappingException e) {
             throw new RuntimeException(e);
         } catch (JsonProcessingException e) {

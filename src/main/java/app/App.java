@@ -3,6 +3,7 @@ package app;
 import app.controllers.CityController;
 import app.controllers.UserController;
 import app.daos.CityDao;
+import app.daos.RoleDao;
 import app.daos.UserDao;
 import app.repositories.UserProfileRepository;
 import app.services.CityService;
@@ -41,10 +42,10 @@ public class App implements ServerApp {
 
         // DAOs
         UserDao userDao = new UserDao(getConnection());
-        CityDao cityDao = new CityDao(getConnection());
+        RoleDao roleDao = new RoleDao(getConnection());
 
         // Repos
-        UserProfileRepository userProfileRepository = new UserProfileRepository(userDao, cityDao);
+        UserProfileRepository userProfileRepository = new UserProfileRepository(userDao, roleDao);
 
         // Controllers
         CityController cityController = new CityController(new CityService());

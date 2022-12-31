@@ -1,19 +1,18 @@
 package app.repositories;
 
 import app.daos.CityDao;
+import app.daos.RoleDao;
 import app.daos.UserDao;
 import app.dtos.UserProfileDTO;
 import app.models.City;
+import app.models.Role;
 import app.models.User;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.UUID;
+import java.util.*;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter(AccessLevel.PRIVATE)
@@ -24,7 +23,7 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
     // A DAO is a lower-level concept, closer to the storage systems.
     // However, Repository is a higher-level concept, closer to the Domain objects
     UserDao userDao;
-    CityDao cityDao;
+    RoleDao roleDao;
     // hashmap takes a key and a value
     // Key will be the id of the user (Integer)
     // value would be the userProfile
@@ -39,70 +38,37 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
     // we inject the DAOs
     // with that in mind we can test this class
     // because we can inject mocked DAO objects
-    public UserProfileRepository(UserDao userDao, CityDao cityDao) {
+    public UserProfileRepository(UserDao userDao, RoleDao roleDao) {
         setUserDao(userDao);
-        setCityDao(cityDao);
+        setRoleDao(roleDao);
     }
 
     @Override
     public ArrayList<UserProfileDTO> getAll() {
         try {
-            System.out.println(getUserProfilesCache().isEmpty());
+            // System.out.println(getUserProfilesCache().isEmpty());
             if (!getUserProfilesCache().isEmpty()) {
                 // when we use a hashmap for our cache we need to transform
                 // the hashmap into an arraylist of the values in our hashmap
                 return new ArrayList(userProfilesCache.values());
             }
-
-            // get all cities
-            HashMap<Integer, City> cities = getCityDao().read();
+            // get roles
+            HashMap<Integer, Role> roles = getRoleDao().read();
             // get all users
-            HashMap<Integer, User> users = getUserDao().read();
-
-            // combine
-            // With Iterator
-            Iterator<User> userIterator = new ArrayList(users.values()).iterator();
-            // we still need to iterate over all users
-            // It could be more readable with:
-            // for (User user: new ArrayList<>(users.values())) {}
-
-            while (userIterator.hasNext()) {
-                User user = userIterator.next();
-
-                // we do not need to iterate over all
-                // cities since we can access a city by Id
-                // and we have the cityId on the user Object
-                // we can access a city in O(1)
-/*
-//das gehört eigentlich entkommentiert, aber ich hab das DTO geändert und mich damit noch nicht befasst
-
-                City city = cities.get(user.getCityId());
-
+            HashMap<UUID, User> users = getUserDao().read();
+            for (User user: new ArrayList<>(users.values())) {
                 UserProfileDTO userProfile = new UserProfileDTO(
-                    user.getId(),
-                    user.getName(),
-                    city
+                        user.getId(),
+                        user.getPassword(),
+                        user.getUsername(),
+                        roles.get(user.getRole_id()).getName(),
+                        user.getElo(),
+                        user.getGames_played(),
+                        user.getGames_won(),
+                        user.getCoins()
                 );
-
                 userProfilesCache.put(userProfile.getId(), userProfile);
-*/
-                // We do not want to iterate over all cities per user
-                // so, we implement a hashmap for our cities store
-                // otherwise our implementation would look like this
-                /*
-                for (City city : cities) {
-                    if (user.getCityId() == city.getId()) {
-                        UserProfileDTO userProfile = new UserProfileDTO(
-                            user.getId(),
-                            user.getName(),
-                            city
-                        );
-                        userProfilesCache.put(userProfile.getId(), userProfile);
-                    }
-                }
-                 */
             }
-
             return new ArrayList(userProfilesCache.values());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -135,15 +101,32 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
     }
     public UserProfileDTO postUser(User data) {
         try {
-            // TODO first check somewhere of username exists already, probably with getAll
-            getUserDao().create(data);
-            UserProfileDTO userProfile = new UserProfileDTO(
-                    //stuff hineintun
-            );
-            return userProfile;
+            if(getByUsername(data.getUsername()) == null){
+                getUserDao().create(data);
+                UserProfileDTO userProfile = new UserProfileDTO(
+                        //stuff hineintun
+                );
+                return userProfile;
+            }
+            else{
+                return null;
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public UserProfileDTO getByUsername(String username) {
+        if (getUserProfilesCache().isEmpty()) {
+            getAll();
+        }
+        for (UserProfileDTO user: new ArrayList<>(userProfilesCache.values())) {
+            // System.out.println(user);
+            if (Objects.equals(user.getUsername(), username)) {
+                return user;
+            }
+        }
+        return null;
     }
 
 }
