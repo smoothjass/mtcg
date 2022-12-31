@@ -78,34 +78,26 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
 
     @Override
     public UserProfileDTO getById(Integer ID) {
-        System.out.println(getUserProfilesCache().isEmpty());
-        if (!getUserProfilesCache().isEmpty()) {
-            // when we use a hashmap for our cache we
-            // can access the user profile by O(1)
-            UserProfileDTO userProfileDTO = userProfilesCache.get(ID);
-            // we would need to check if this variable is empty and
-            // check if its existent in our database
-            return userProfileDTO;
-        }
-
-        // we could refetch all
-        getAll();
-        // or we can simply fetch only one item
-        // but, we would need to implement that in our dao
-        // as well as in our interface
-        // User user = getUserDao().read(ID)
-
-        UserProfileDTO userProfileDTO = userProfilesCache.get(ID);
-
-        return userProfileDTO;
+        // delete later
+        return null;
     }
+
     public UserProfileDTO postUser(User data) {
         try {
             if(getByUsername(data.getUsername()) == null){
-                getUserDao().create(data);
+                HashMap<Integer, Role> roles = getRoleDao().read();
+                User user = getUserDao().create(data);
                 UserProfileDTO userProfile = new UserProfileDTO(
-                        //stuff hineintun
+                        user.getId(),
+                        user.getPassword(),
+                        user.getUsername(),
+                        roles.get(user.getRole_id()).getName(),
+                        user.getElo(),
+                        user.getGames_played(),
+                        user.getGames_won(),
+                        user.getCoins()
                 );
+                userProfilesCache.put(userProfile.getId(), userProfile);
                 return userProfile;
             }
             else{
@@ -118,10 +110,11 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
 
     public UserProfileDTO getByUsername(String username) {
         if (getUserProfilesCache().isEmpty()) {
+            System.out.println("cache empty, gettin all");
             getAll();
         }
         for (UserProfileDTO user: new ArrayList<>(userProfilesCache.values())) {
-            // System.out.println(user);
+            System.out.println(user.getUsername());
             if (Objects.equals(user.getUsername(), username)) {
                 return user;
             }

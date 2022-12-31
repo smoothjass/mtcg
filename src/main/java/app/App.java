@@ -66,9 +66,6 @@ public class App implements ServerApp {
                 if (request.getPathname().equals("/cities")) {
                     return getCityController().getCities();
                 }
-                if (request.getPathname().equals("/user-profiles")) {
-                    return getUserController().getUserProfiles();
-                }
                 // check path and path variables
                 if (request.getPathname().matches("/user-profiles/\\d+")) {
                     // extract the path variable from the path
@@ -78,13 +75,11 @@ public class App implements ServerApp {
                 }
 
                 // paths as specified in openapi on moodle
-                if (request.getPathname().matches("/users/\\d+")) {
-                    Integer ID = parseInt(request.getPathname().split("/")[2]);
-                    // Retrieves the user data for the uuid provided in the route.
-                    // Only the admin or the matching user can successfully retrieve the data.
-
-                    // TODO change to username
-                    return getUserController().getUserProfile(ID);
+                if (request.getPathname().matches("/users/[a-zA-Z0-9]*")) {
+                    String username = request.getPathname().split("/")[2];
+                    // Retrieves the user data for the username provided in the route.
+                    // TODO Only the admin or the matching user can successfully retrieve the data. 401 Response. access token in body
+                    return getUserController().getUserProfile(username);
                 }
                 if (request.getPathname().equals("/cards")) {
                     // Returns all cards that have been required by the provided user

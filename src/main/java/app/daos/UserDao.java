@@ -31,19 +31,33 @@ public class UserDao implements Dao<User, UUID> {
     @Override
     public User create(User user) throws SQLException {
         String update = "INSERT INTO users (user_id, password, username) VALUES(?,?,?);";
-        PreparedStatement stmt = getConnection().prepareStatement(update);
-        stmt.setObject(1, UUID.randomUUID());
+        PreparedStatement stmt1 = getConnection().prepareStatement(update);
+        stmt1.setObject(1, UUID.randomUUID());
         String sha256hex = Hashing.sha256()
                 .hashString(user.getPassword(), StandardCharsets.UTF_8)
                 .toString();
-        stmt.setString(2, sha256hex);
-        stmt.setString(3, user.getUsername());
-        System.out.println(stmt);
-        int result = stmt.executeUpdate();
-        System.out.println(result);
-        User newUser = new User(
-            // TODO stuff from db da hinein
-        );
+        stmt1.setString(2, sha256hex);
+        stmt1.setString(3, user.getUsername());
+        // System.out.println(stmt);
+        int insert = stmt1.executeUpdate();
+        // System.out.println(result);
+        String query = "SELECT * FROM users WHERE username = ?";
+        PreparedStatement stmt2 = getConnection().prepareStatement(query);
+        stmt2.setString(1, user.getUsername());
+        ResultSet result = stmt2.executeQuery();
+        if (result.next()){
+            User newUser = new User(
+                    (UUID) result.getObject(1),
+                    result.getString(2),
+                    result.getString(3),
+                    result.getInt(4),
+                    result.getInt(5),
+                    result.getInt(6),
+                    result.getInt(7),
+                    result.getInt(8)
+            );
+            return newUser;
+        }
         return null;
     }
 

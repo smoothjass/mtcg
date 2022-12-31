@@ -34,49 +34,12 @@ public class UserController extends Controller {
         setUserService(userService);
     }
 
-    // GET /user-profiles
-    public Response getUserProfiles() {
-        try {
-            // The repository getAll is returning an arraylist
-            ArrayList<UserProfileDTO> userProfiles = getUserProfileRepository().getAll();
-            // We need to map that to a JSON String
-            String userProfileJSON = getObjectMapper().writeValueAsString(userProfiles);
-
-            // remember to send the correct status code
-            // if we do not have any userProfiles
-            // we send an 404 - Not Found
-            // can you refactor this code so that is more readable?
-            // e.g. get rid of another nesting?
-            if (userProfiles.isEmpty()) {
-                return new Response(
-                    HttpStatus.NOT_FOUND,
-                    ContentType.JSON,
-                    "{ \"data\": null, \"error\": \"No users found\" }"
-                );
-            }
-
-            return new Response(
-                HttpStatus.OK,
-                ContentType.JSON,
-                "{ \"data\": " + userProfileJSON + ", \"error\": null }"
-            );
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return new Response(
-            HttpStatus.BAD_REQUEST,
-            ContentType.JSON,
-            "{ \"data\": null, \"error\": \"Error\" }"
-        );
-    }
-
     // GET /user-profiles/:ID
     // We get the ID from the path (e.g. a path variable (:ID))
-    public Response getUserProfile(Integer ID) {
+    public Response getUserProfile(String username) {
         try {
-            // our userRepository returns a single UserProfile getById
-            UserProfileDTO userProfile = getUserProfileRepository().getById(ID);
+            // our userRepository returns a single UserProfile getByUsername
+            UserProfileDTO userProfile = getUserProfileRepository().getByUsername(username);
             // parse to JSON string
             String userProfileJSON = getObjectMapper().writeValueAsString(userProfile);
 
@@ -84,7 +47,7 @@ public class UserController extends Controller {
                 return new Response(
                     HttpStatus.NOT_FOUND,
                     ContentType.JSON,
-                    "{ \"data\": null, \"error\": \"User does not exist\" }"
+                    "{ \"data\": null, \"error\": \"User not found\" }"
                 );
             }
 
@@ -112,14 +75,14 @@ public class UserController extends Controller {
                 return new Response(
                         HttpStatus.CREATED,
                         ContentType.JSON,
-                        "{\"description\": user successfully created, \"data\": " + body + ", \"error\": null }"
+                        "{\"description\": user successfully created, \"data\": null, \"error\": null }"
                 );
             }
             else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        "{\"description\": User with same username already registered, \"data\": " + body + ", \"error\": null }"
+                        "{\"data\": null, \"error\": User with same username already registered }"
                 );
             }
         } catch (JsonMappingException e) {
