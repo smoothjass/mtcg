@@ -135,14 +135,15 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
     }
     public UserProfileDTO postUser(User data) {
         try {
+            // TODO first check somewhere of username exists already, probably with getAll
             getUserDao().create(data);
             UserProfileDTO userProfile = new UserProfileDTO(
                     //stuff hineintun
             );
+            return userProfile;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 
 }

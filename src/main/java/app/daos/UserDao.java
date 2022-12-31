@@ -30,16 +30,17 @@ public class UserDao implements Dao<User, Integer> {
 
     @Override
     public User create(User user) throws SQLException {
-        // first check somewhere of username is unique, probably with getAll
-        String query = "INSERT INTO users (user_id, password, username) VALUES(?,?,?)";
-        PreparedStatement stmt = getConnection().prepareStatement(query);
-        stmt.setString(1, String.valueOf(UUID.randomUUID()));
+        String update = "INSERT INTO users (user_id, password, username) VALUES(?,?,?);";
+        PreparedStatement stmt = getConnection().prepareStatement(update);
+        stmt.setObject(1, UUID.randomUUID());
         String sha256hex = Hashing.sha256()
                 .hashString(user.getPassword(), StandardCharsets.UTF_8)
                 .toString();
         stmt.setString(2, sha256hex);
         stmt.setString(3, user.getUsername());
-        ResultSet result = stmt.executeQuery();
+        System.out.println(stmt);
+        int result = stmt.executeUpdate();
+        System.out.println(result);
         User newUser = new User(
             // TODO stuff from db da hinein
         );

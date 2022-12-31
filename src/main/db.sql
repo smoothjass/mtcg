@@ -1,100 +1,142 @@
 --DROP TABLES-----------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS tradings;
-DROP TABLE IF EXISTS stack;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS roles;
-DROP TABLE IF EXISTS cards;
-DROP TABLE IF EXISTS cardtypes;
-DROP TABLE IF EXISTS elements;
+DROP TABLE IF EXISTS tradings CASCADE;
+DROP TABLE IF EXISTS stack CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
+DROP TABLE IF EXISTS cards CASCADE;
+DROP TABLE IF EXISTS cardtypes CASCADE;
+DROP TABLE IF EXISTS elements CASCADE;
 
---CREATE TABLES---------------------------------------------------------------------------------------------------
-CREATE TABLE roles (
-                       role_id SERIAL PRIMARY KEY,
-                       name VARCHAR(255)
+create table if not exists roles
+(
+    role_id serial
+    primary key,
+    name    varchar(255)
+    );
+
+alter table roles
+    owner to swe1user;
+
+create table if not exists users
+(
+    user_id      uuid                 not null
+    primary key,
+    password     varchar(255)         not null,
+    username     varchar(255)         not null
+    unique,
+    role_id      integer  default 2   not null
+    constraint fk_role
+    references roles,
+    elo          smallint default 100 not null,
+    games_played smallint default 0   not null,
+    games_won    smallint default 0   not null,
+    coins        smallint default 20  not null
+    );
+
+alter table users
+    owner to swe1user;
+
+create table if not exists cardtypes
+(
+    cardtype_id serial
+    primary key,
+    name        varchar(255)         not null
+    unique,
+    monster     boolean default true not null
+    );
+
+alter table cardtypes
+    owner to swe1user;
+
+create table if not exists elements
+(
+    element_id serial
+    primary key,
+    name       varchar(255) not null
+    unique
+    );
+
+alter table elements
+    owner to swe1user;
+
+create table if not exists cards
+(
+    card_id     serial
+    primary key,
+    damage      smallint not null,
+    cardtype_id integer  not null
+    constraint fk_cardtype
+    references cardtypes,
+    element_id  integer  not null
+    constraint fk_element
+    references elements
 );
 
-CREATE TABLE users (
-                       user_id UUID PRIMARY KEY,
-                       password VARCHAR (255) NOT NULL,
-                       username VARCHAR(255) UNIQUE NOT NULL,
-                       role_id INT NOT NULL,
-                       CONSTRAINT fk_role
-                           FOREIGN KEY(role_id)
-                               REFERENCES roles(role_id),
-                       elo SMALLINT NOT NULL,
-                       games_played SMALLINT NOT NULL,
-                       games_won SMALLINT NOT NULL,
-                       coins SMALLINT NOT NULL
+alter table cards
+    owner to swe1user;
+
+create table if not exists packages
+(
+    package_id serial
+    primary key
 );
 
-CREATE TABLE cardtypes (
-                           cardtype_id SERIAL PRIMARY KEY,
-                           name VARCHAR(255) UNIQUE NOT NULL,
-                           monster BOOLEAN NOT NULL
+alter table packages
+    owner to swe1user;
+
+create table if not exists cards_packages
+(
+    package_id integer not null
+    constraint fk_package
+    references packages,
+    card_id    integer not null
+    constraint fk_card
+    references cards,
+    primary key (package_id, card_id)
+    );
+
+alter table cards_packages
+    owner to swe1user;
+
+create table if not exists stacks
+(
+    cardinstance_id serial
+    primary key,
+    card_id         integer               not null
+    constraint fk_card
+    references cards,
+    user_id         uuid                  not null
+    constraint fk_user
+    references users,
+    used_in_deck    boolean default false not null,
+    used_in_trade   boolean default false not null
 );
 
-CREATE TABLE elements (
-                          element_id SERIAL PRIMARY KEY,
-                          name VARCHAR(255) UNIQUE NOT NULL
+alter table stacks
+    owner to swe1user;
+
+create table if not exists tradings
+(
+    trading_id      uuid    not null
+    primary key,
+    cardinstance_id integer not null
+    constraint fk_cardinstance
+    references stacks,
+    card_id         integer
+    constraint fk_card
+    references cards,
+    cardtype_id     integer
+    constraint fk_cardtype
+    references cardtypes,
+    element_id      integer
+    constraint fk_element
+    references elements,
+    min_damage      smallint
 );
 
-CREATE TABLE cards (
-                       card_id SERIAL PRIMARY KEY,
-                       name VARCHAR(255) NOT NULL,
-                       damage SMALLINT NOT NULL,
-                       cardtype_id INT NOT NULL,
-                       CONSTRAINT fk_cardtype
-                           FOREIGN KEY(cardtype_id)
-                               REFERENCES cardtypes(cardtype_id),
-                       element_id INT NOT NULL,
-                       CONSTRAINT fk_element
-                           FOREIGN KEY(element_id)
-                               REFERENCES elements(element_id)
-);
+alter table tradings
+    owner to swe1user;
 
-CREATE TABLE stack (
-                       cardinstance_id SERIAL PRIMARY KEY,
-                       card_id INT NOT NULL,
-                       CONSTRAINT fk_card
-                           FOREIGN KEY(card_id)
-                               REFERENCES cards(card_id),
-                       user_id UUID NOT NULL,
-                       CONSTRAINT fk_user
-                           FOREIGN KEY(user_id)
-                               REFERENCES users(user_id),
-                       used_in_deck BOOLEAN NOT NULL,
-                       used_in_trade BOOLEAN NOT NULL
-);
-
-CREATE TABLE tradings (
-                          trading_id UUID PRIMARY KEY,
-                          cardinstance_id INT NOT NULL,
-                          CONSTRAINT fk_cardinstance
-                              FOREIGN KEY(cardinstance_id)
-                                  REFERENCES stack(cardinstance_id),
-                          card_id INT,
-                          CONSTRAINT fk_card
-                              FOREIGN KEY(card_id)
-                                  REFERENCES cards(card_id),
-                          cardtype_id INT,
-                          CONSTRAINT fk_cardtype
-                              FOREIGN KEY(cardtype_id)
-                                  REFERENCES cardtypes(cardtype_id),
-                          element_id INT,
-                          CONSTRAINT fk_element
-                              FOREIGN KEY(element_id)
-                                  REFERENCES elements(element_id),
-                          min_damage SMALLINT
-);
-
---SET DEFAULT VALUES----------------------------------------------------------------------------------------------
-ALTER TABLE users ALTER COLUMN elo SET DEFAULT 100;
-ALTER TABLE users ALTER COLUMN games_played SET DEFAULT 0;
-ALTER TABLE users ALTER COLUMN games_won SET DEFAULT 0;
-ALTER TABLE users ALTER COLUMN coins SET DEFAULT 20;
-ALTER TABLE stack ALTER COLUMN used_in_deck SET DEFAULT false;
-ALTER TABLE stack ALTER COLUMN used_in_trade SET DEFAULT false;
-ALTER TABLE cardtypes ALTER COLUMN monster SET DEFAULT true;
 
 --INSERTS---------------------------------------------------------------------------------------------------------
 INSERT INTO roles (name) VALUES ('admin');
@@ -123,94 +165,3 @@ INSERT INTO cardtypes (name) VALUES ('elf');
 INSERT INTO elements (name) VALUES ('fire');
 INSERT INTO elements (name) VALUES ('water');
 INSERT INTO elements (name) VALUES ('normal');
-
---spells
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('weak', 15, 1, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('weak', 15, 1, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('weak', 15, 1, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 25, 1, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 25, 1, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 25, 1, 3);
-
---goblins
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 2, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 2, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 2, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 2, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 2, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 2, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 2, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 2, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 2, 3);
-
---dragons
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 3, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 3, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 3, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 3, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 3, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 3, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 3, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 3, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 3, 3);
-
---wizzards
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 4, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 4, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 4, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 4, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 4, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 4, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 4, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 4, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 4, 3);
-
---orks
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 5, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 5, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 5, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 5, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 5, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 5, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 5, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 5, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 5, 3);
-
---knights
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 6, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 6, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 6, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 6, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 6, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 6, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 6, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 6, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 6, 3);
-
---kraken
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 7, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 7, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 7, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 7, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 7, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 7, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 7, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 7, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 7, 3);
-
---elves
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 8, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 8, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('baby', 10, 8, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 8, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 8, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('adolescent', 20, 8, 3);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 8, 1);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 8, 2);
-INSERT INTO cards (name, damage, cardtype_id, element_id) VALUES ('powerful', 30, 8, 3);
-
-select cards.name || e.name || c.name as name, cards.damage, c.monster as isMonster, e.element_id from cards
-                                                                                                           join cardtypes c on c.cardtype_id = cards.cardtype_id
-                                                                                                           join elements e on e.element_id = cards.element_id;
-
-select * from users join roles r on users.role_id = r.role_id;
