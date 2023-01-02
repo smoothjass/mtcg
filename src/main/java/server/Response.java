@@ -10,10 +10,13 @@ import lombok.Setter;
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
 public class Response {
-    private int statusCode;
     private String statusMessage;
     private String contentType;
     private String content;
+
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private int statusCode;
 
     public Response(HttpStatus httpStatus, ContentType contentType, String content) {
         setStatusCode(httpStatus.getCode());

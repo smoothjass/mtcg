@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import server.Request;
+import server.RequestHandler;
 import server.Response;
 import server.ServerApp;
 
@@ -29,6 +30,7 @@ public class App implements ServerApp {
     private CityController cityController;
     private UserController userController;
     private Connection connection;
+    private String sessionUserToken = "";
 
     // In our app we instantiate all of our DAOs, repositories, and controllers
     // we inject the DAOs to the repos
@@ -67,6 +69,7 @@ public class App implements ServerApp {
                     String username = request.getPathname().split("/")[2];
                     // Retrieves the user data for the username provided in the route.
                     // TODO Only the admin or the matching user can successfully retrieve the data. 401 Response. access token in body
+
                     return getUserController().getUserProfile(username);
                 }
                 if (request.getPathname().equals("/cards")) {
@@ -97,6 +100,7 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/sessions")) {
                     // Login with existing user
+                    return getUserController().login(request.getBody());
                 }
                 if (request.getPathname().equals("/packages")) {
                     // Create new card packages (requires admin)

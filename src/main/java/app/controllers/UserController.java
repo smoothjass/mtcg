@@ -6,6 +6,7 @@ import app.repositories.UserProfileRepository;
 import app.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.common.hash.Hashing;
 import http.ContentType;
 import http.HttpStatus;
 import lombok.AccessLevel;
@@ -14,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import server.Response;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 // Our User Controller is using the database with repositories, DAOs, Models, (DTOs)
@@ -73,16 +75,16 @@ public class UserController extends Controller {
             UserProfileDTO userProfile = getUserProfileRepository().postUser(userData);
             if (userProfile != null) {
                 return new Response(
-                        HttpStatus.CREATED,
-                        ContentType.JSON,
-                        "{\"description\": user successfully created, \"data\": null, \"error\": null }"
+                    HttpStatus.CREATED,
+                    ContentType.JSON,
+                    "{\"description\": user successfully created, \"data\": null, \"error\": null }"
                 );
             }
             else{
                 return new Response(
-                        HttpStatus.CONFLICT,
-                        ContentType.JSON,
-                        "{\"data\": null, \"error\": User with same username already registered }"
+                    HttpStatus.CONFLICT,
+                    ContentType.JSON,
+                    "{\"data\": null, \"error\": User with same username already registered }"
                 );
             }
         } catch (JsonMappingException e) {
@@ -96,24 +98,53 @@ public class UserController extends Controller {
         try {
             User data = getObjectMapper().readValue(body, User.class);
             UserProfileDTO userProfile = getUserProfileRepository().updateUser(username, data);
-            // parse to JSON string
-            String userProfileJSON = getObjectMapper().writeValueAsString(userProfile);
 
             if (userProfile == null) {
                 return new Response(
-                        HttpStatus.NOT_FOUND,
-                        ContentType.JSON,
-                        "{ \"data\": null, \"error\": \"User not found\" }"
+                    HttpStatus.NOT_FOUND,
+                    ContentType.JSON,
+                    "{ \"data\": null, \"error\": \"User not found\" }"
                 );
             }
 
+            // parse to JSON string
+            String userProfileJSON = getObjectMapper().writeValueAsString(userProfile);
             return new Response(
-                    HttpStatus.OK,
-                    ContentType.JSON,
-                    "{ \"description\": User successfully updated, \"data\": " + userProfileJSON + ", \"error\": null }"
+                HttpStatus.OK,
+                ContentType.JSON,
+                "{ \"description\": User successfully updated, \"data\": " + userProfileJSON + ", \"error\": null }"
             );
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Response login(String body) {
+        try {
+            User data = getObjectMapper().readValue(body, User.class);
+            UserProfileDTO userProfile = getUserProfileRepository().getByUsername(data.getUsername());
+            if(userProfile != null) {
+                // user with given username found -> compare passwords
+                String sha256hex = Hashing.sha256()
+                        .hashString(data.getPassword(), StandardCharsets.UTF_8)
+                        .toString();
+                if (sha256hex.equals(userProfile.getPassword())) {
+                    // parse to JSON string
+                    String userProfileJSON = getObjectMapper().writeValueAsString(userProfile);
+                    return new Response(
+                        HttpStatus.OK,
+                        ContentType.JSON,
+                        "{ \"description\": User login successful, \"data\": " + userProfile.getUsername() + "-mtcgToken" + ", \"error\": null }"
+                    );
+                }
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return new Response(
+            HttpStatus.UNAUTHORIZED,
+            ContentType.JSON,
+            "{\"data\": null, \"error\": Invalid username/password provided}"
+        );
     }
 }

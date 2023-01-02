@@ -19,6 +19,7 @@ public class Request {
     private String contentType;
     private Integer contentLength;
     private String body = "";
+    private String authToken = "";
 
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
@@ -26,6 +27,10 @@ public class Request {
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
     private final String CONTENT_LENGTH = "Content-Length: ";
+
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
+    private final String AUTHORIZATION = "Authorization: ";
 
     public Request(BufferedReader inputStream) {
         buildRequest(inputStream);
@@ -44,6 +49,8 @@ public class Request {
                 setPathname(getPathnameFromInputLine(splitFirstLine, hasParams));
                 setParams(getParamsFromInputLine(splitFirstLine, hasParams));
 
+                // System.out.println(getParams());
+
                 while (!line.isEmpty()) {
                     System.out.println(line);
                     line = inputStream.readLine();
@@ -52,6 +59,10 @@ public class Request {
                     }
                     if (line.startsWith(CONTENT_TYPE)) {
                         setContentType(getContentTypeFromInputLine(line));
+                    }
+                    if (line.startsWith(AUTHORIZATION)) {
+                        setAuthToken(getAuthorizationFromInputLine(line));
+                        // System.out.println("auth: " + authToken);
                     }
                 }
 
@@ -67,6 +78,10 @@ public class Request {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getAuthorizationFromInputLine(String line) {
+        return (line.substring(AUTHORIZATION.length())).substring("Bearer ".length());
     }
 
 
