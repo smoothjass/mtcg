@@ -1,6 +1,6 @@
 --DROP TABLES-----------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS tradings CASCADE;
-DROP TABLE IF EXISTS stack CASCADE;
+DROP TABLE IF EXISTS stacks CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS cards CASCADE;
@@ -24,6 +24,9 @@ create table if not exists users
     password     varchar(255)         not null,
     username     varchar(255)         not null
     unique,
+    name         varchar(255),
+    bio          varchar(255),
+    image        varchar(255),
     role_id      integer  default 2   not null
     constraint fk_role
     references roles,
@@ -89,11 +92,10 @@ create table if not exists cards_packages
     package_id integer not null
     constraint fk_package
     references packages,
-    card_id    integer not null
-    constraint fk_card
-    references cards,
+    card_id    integer not null,
     primary key (package_id, card_id)
-    );
+);
+alter table cards_packages add constraint fk_cards foreign key (card_id) references cards (card_id);
 
 alter table cards_packages
     owner to swe1user;
@@ -165,3 +167,6 @@ INSERT INTO cardtypes (name) VALUES ('elf');
 INSERT INTO elements (name) VALUES ('fire');
 INSERT INTO elements (name) VALUES ('water');
 INSERT INTO elements (name) VALUES ('normal');
+
+update users set elo=80 where username = 'testuser';
+update users set elo=120 where username = 'seconduser';

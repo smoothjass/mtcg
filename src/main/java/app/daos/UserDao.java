@@ -1,5 +1,6 @@
 package app.daos;
 
+import app.dtos.UserProfileDTO;
 import app.models.User;
 import com.google.common.hash.Hashing;
 import lombok.AccessLevel;
@@ -11,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -87,6 +89,34 @@ public class UserDao implements Dao<User, UUID> {
             );
 
             users.put(user.getId(), user);
+        }
+        return users;
+    }
+
+    // overload read if specific order is needed
+    public ArrayList<User> read(String orderBy) throws SQLException {
+        ArrayList<User> users = new ArrayList<User>();
+        String query = "SELECT * FROM users ORDER BY ? DESC";
+        PreparedStatement stmt = getConnection().prepareStatement(query);
+        stmt.setString(1, orderBy);
+        ResultSet result = stmt.executeQuery();
+
+        while (result.next()) {
+            User user = new User(
+                    (UUID) result.getObject(1),
+                    result.getString(2),
+                    result.getString(3),
+                    result.getString(4),
+                    result.getString(5),
+                    result.getString(6),
+                    result.getInt(7),
+                    result.getInt(8),
+                    result.getInt(9),
+                    result.getInt(10),
+                    result.getInt(11)
+            );
+            System.out.println(user.getUsername() + user.getElo());
+            users.add(user);
         }
         return users;
     }

@@ -17,6 +17,7 @@ import server.Response;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 
 // Our User Controller is using the database with repositories, DAOs, Models, (DTOs)
 @Setter(AccessLevel.PRIVATE)
@@ -56,7 +57,13 @@ public class UserController extends Controller {
             return new Response(
                 HttpStatus.OK,
                 ContentType.JSON,
-                "{ \"data\": " + userProfileJSON + ", \"error\": null }"
+                "{ \"description\": Data successfully retrieved, " +
+                        "\"data\": {" +
+                        "\"name\": " + userProfile.getName() + ", " +
+                        "\"bio\": " + userProfile.getBio() + ", " +
+                        "\"image\": " + userProfile.getImage() + ", " +
+                        "}" +
+                        "\"error\": null }"
             );
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -112,7 +119,7 @@ public class UserController extends Controller {
             return new Response(
                 HttpStatus.OK,
                 ContentType.JSON,
-                "{ \"description\": User successfully updated, \"data\": " + userProfileJSON + ", \"error\": null }"
+                "{ \"description\": User successfully updated, \"data\": null, \"error\": null }"
             );
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -145,6 +152,48 @@ public class UserController extends Controller {
             HttpStatus.UNAUTHORIZED,
             ContentType.JSON,
             "{\"data\": null, \"error\": Invalid username/password provided}"
+        );
+    }
+
+    public Response getStats(String username) {
+        UserProfileDTO userProfile = getUserProfileRepository().getByUsername(username);
+        if (userProfile != null) {
+            return new Response(
+                HttpStatus.OK,
+                ContentType.JSON,
+                "{ \"description\": User stats could be retrieved successfully, " +
+                        "\"data\": {" +
+                        "\"name\": " + userProfile.getName() + ", " +
+                        "\"elo\": " + userProfile.getElo() + ", " +
+                        "\"wins\": " + userProfile.getGames_won() + ", " +
+                        "\"losses\": " + (userProfile.getGames_played()-userProfile.getGames_won()) + ", " +
+                        "}, " +
+                        "\"error\": null }"
+            );
+        }
+        return null;
+    }
+
+    public Response getScores() {
+        ArrayList<UserProfileDTO> users = getUserProfileRepository().getAll("elo");
+        ArrayList<String> scores = new ArrayList<String>();
+        for(UserProfileDTO userProfile: users) {
+            String temp =
+                    "{" +
+                    "\"name\": " + userProfile.getName() + ", " +
+                    "\"elo\": " + userProfile.getElo() + ", " +
+                    "\"wins\": " + userProfile.getGames_won() + ", " +
+                    "\"losses\": " + (userProfile.getGames_played()-userProfile.getGames_won()) + ", " +
+                    "}, ";
+            scores.add(temp);
+        }
+        return new Response(
+            HttpStatus.OK,
+            ContentType.JSON,
+            "{ \"description\": The scoreboard could be retrieved successfully, " +
+                    "\"data\": {" +
+                    scores +
+                    "\"error\": null }"
         );
     }
 }

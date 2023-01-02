@@ -1,6 +1,7 @@
 package app.dtos;
 
 import app.models.City;
+import app.models.User;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

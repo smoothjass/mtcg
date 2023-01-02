@@ -79,6 +79,35 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
         }
     }
 
+    // overload get all if sorting is needed
+    public ArrayList<UserProfileDTO> getAll(String orderBy) {
+        try {
+            ArrayList<UserProfileDTO> userProfiles = new ArrayList<UserProfileDTO>();
+            HashMap<Integer, Role> roles = getRoleDao().read();
+            ArrayList<User> users = getUserDao().read(orderBy);
+            for (User user: users) {
+                System.out.println(user.getUsername() + user.getElo());
+                UserProfileDTO userProfile = new UserProfileDTO(
+                        user.getId(),
+                        user.getPassword(),
+                        user.getUsername(),
+                        user.getName(),
+                        user.getBio(),
+                        user.getImage(),
+                        roles.get(user.getRole_id()).getName(),
+                        user.getElo(),
+                        user.getGames_played(),
+                        user.getGames_won(),
+                        user.getCoins()
+                );
+                userProfiles.add(userProfile);
+            }
+            return userProfiles;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public UserProfileDTO getById(Integer ID) {
         // delete later

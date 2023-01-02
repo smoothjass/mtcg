@@ -80,9 +80,13 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/stats")) {
                     // Retrieves the stats for the requesting user.
+                    String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
+                    // TODO check access token for 401
+                    return getUserController().getStats(username);
                 }
                 if (request.getPathname().equals("/scores")) {
                     // Retrieves the user scoreboard ordered by the user's ELO.
+                    return getUserController().getScores();
                 }
                 if (request.getPathname().equals("/tradings")) {
                     // Retrieves the currently available trading deals.
