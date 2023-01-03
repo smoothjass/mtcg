@@ -11,7 +11,6 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class User {
-    // See City Model
     @JsonAlias({"id"})
     UUID id;
     @JsonAlias({"password"})

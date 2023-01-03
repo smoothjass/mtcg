@@ -1,21 +1,16 @@
 package app;
 
-import app.controllers.CityController;
 import app.controllers.UserController;
-import app.daos.CityDao;
 import app.daos.RoleDao;
 import app.daos.UserDao;
 import app.repositories.UserProfileRepository;
-import app.services.CityService;
 import app.services.DatabaseService;
-import app.services.UserService;
 import http.ContentType;
 import http.HttpStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import server.Request;
-import server.RequestHandler;
 import server.Response;
 import server.ServerApp;
 
@@ -27,7 +22,6 @@ import static java.lang.Integer.parseInt;
 @Setter(AccessLevel.PRIVATE)
 @Getter(AccessLevel.PRIVATE)
 public class App implements ServerApp {
-    private CityController cityController;
     private UserController userController;
     private Connection connection;
     private String sessionUserToken = "";
@@ -50,10 +44,8 @@ public class App implements ServerApp {
         UserProfileRepository userProfileRepository = new UserProfileRepository(userDao, roleDao);
 
         // Controllers
-        CityController cityController = new CityController(new CityService());
-        UserController userController = new UserController(userProfileRepository, new UserService());
+        UserController userController = new UserController(userProfileRepository);
 
-        setCityController(cityController);
         setUserController(userController);
     }
 
@@ -93,10 +85,6 @@ public class App implements ServerApp {
                 }
             }
             case POST: {
-                // paths from in-class coding
-                if (request.getPathname().equals("/cities")) {
-                    return getCityController().createCity(request.getBody());
-                }
                 // paths as specified in openapi on moodle
                 if (request.getPathname().equals("/users")) {
                     // Register a new user

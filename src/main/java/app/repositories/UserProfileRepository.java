@@ -1,10 +1,8 @@
 package app.repositories;
 
-import app.daos.CityDao;
 import app.daos.RoleDao;
 import app.daos.UserDao;
 import app.dtos.UserProfileDTO;
-import app.models.City;
 import app.models.Role;
 import app.models.User;
 import lombok.AccessLevel;

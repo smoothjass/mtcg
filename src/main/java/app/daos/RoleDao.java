@@ -1,6 +1,5 @@
 package app.daos;
 
-import app.models.City;
 import app.models.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
