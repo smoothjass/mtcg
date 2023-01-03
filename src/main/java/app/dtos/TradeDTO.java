@@ -21,4 +21,6 @@ public class TradeDTO {
     String element;
     @JsonAlias({"min_damage"})
     int min_damage;
+
+    public TradeDTO(){}
 }

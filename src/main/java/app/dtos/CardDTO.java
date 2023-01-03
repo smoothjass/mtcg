@@ -19,10 +19,12 @@ public class CardDTO {
     String cardtype;
     @JsonAlias({"element"})
     String element;
-    @JsonAlias({"username"})
-    String username;
+    @JsonAlias({"user_id"})
+    UUID user_id;
     @JsonAlias({"used_in_deck"})
     boolean used_in_deck;
     @JsonAlias({"used_in_trade"})
     boolean used_in_trade;
+
+    public CardDTO(){}
 }

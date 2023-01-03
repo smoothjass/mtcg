@@ -1,8 +1,9 @@
 package app;
 
+import app.controllers.CardController;
 import app.controllers.UserController;
-import app.daos.RoleDao;
-import app.daos.UserDao;
+import app.daos.*;
+import app.repositories.CardRepository;
 import app.repositories.UserProfileRepository;
 import app.services.DatabaseService;
 import http.ContentType;
@@ -23,6 +24,7 @@ import static java.lang.Integer.parseInt;
 @Getter(AccessLevel.PRIVATE)
 public class App implements ServerApp {
     private UserController userController;
+    private CardController cardController;
     private Connection connection;
     private String sessionUserToken = "";
 
@@ -39,14 +41,20 @@ public class App implements ServerApp {
         // DAOs
         UserDao userDao = new UserDao(getConnection());
         RoleDao roleDao = new RoleDao(getConnection());
+        CardDao cardDao = new CardDao(getConnection());
+        CardtypeDao cardtypeDao = new CardtypeDao(getConnection());
+        ElementDao elementDao = new ElementDao(getConnection());
 
         // Repos
         UserProfileRepository userProfileRepository = new UserProfileRepository(userDao, roleDao);
+        CardRepository cardRepository = new CardRepository(cardDao, cardtypeDao, elementDao);
 
         // Controllers
         UserController userController = new UserController(userProfileRepository);
+        CardController cardController = new CardController(cardRepository);
 
         setUserController(userController);
+        setCardController(cardController);
     }
 
     // the handleRequest Method is used in the server
@@ -96,6 +104,8 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/packages")) {
                     // Create new card packages (requires admin)
+                    // TODO check access token for 401
+                    return getCardController().createPackage(request.getBody());
                 }
                 if (request.getPathname().equals("/transactions/packages")) {
                     // Acquire a card package
