@@ -177,4 +177,17 @@ public class CardRepository {
             throw new RuntimeException(e);
         }
     }
+
+    public ArrayList<CardDTO> getForUser(UUID id) {
+        ArrayList<CardDTO> cards = new ArrayList<>();
+        if (cardCache.isEmpty()) {
+            cardCache = getAll();
+        }
+        cardCache.forEach((key, value) -> {
+            if (value.getUser_id() == id) {
+                cards.add(value);
+            }
+        });
+        return cards;
+    }
 }

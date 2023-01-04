@@ -67,8 +67,8 @@ public class CardController extends Controller {
                 "{\"data\": null, \"error\": Not enough money for buying a card package } "
             );
         }
-        PackageDTO acquiredPackge = getCardRepository().acquirePackage(user);
-        if (acquiredPackge == null) {
+        PackageDTO acquiredpackage = getCardRepository().acquirePackage(user);
+        if (acquiredpackage == null) {
             return new Response(
                 HttpStatus.NOT_FOUND,
                 ContentType.JSON,
@@ -77,11 +77,40 @@ public class CardController extends Controller {
         }
         try {
             // TODO reduce user's coins
-            String packageJSON = getObjectMapper().writeValueAsString(acquiredPackge);
+            String packageJSON = getObjectMapper().writeValueAsString(acquiredpackage);
             return new Response(
                 HttpStatus.OK,
                 ContentType.JSON,
                 "{\"description\": a package has been successfully bought, \"data\": "+ packageJSON + ", \"error\": null } "
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Response getCardsForUser(String username) {
+        UserProfileDTO user = getUserProfileRepository().getByUsername(username);
+        if (user == null) {
+            return new Response(
+                HttpStatus.NOT_FOUND,
+                ContentType.JSON,
+                "{\"data\": null, \"error\": User does not exist } "
+            );
+        }
+        ArrayList<CardDTO> cards = getCardRepository().getForUser(user.getId());
+        if (cards.isEmpty()) {
+            return new Response(
+                HttpStatus.NO_CONTENT,
+                ContentType.JSON,
+                "{ \"description\": the user doesn't have any cards, \"data\": null, \"error\": null } "
+            );
+        }
+        try {
+            String cardsJSON = getObjectMapper().writeValueAsString(cards);
+            return new Response(
+                HttpStatus.OK,
+                ContentType.JSON,
+                "{\"description\": the user has cards, \"data\": "+ cardsJSON + ", \"error\": null } "
             );
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

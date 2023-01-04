@@ -17,6 +17,7 @@ import server.ServerApp;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.UUID;
 
 import static java.lang.Integer.parseInt;
@@ -75,12 +76,29 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/cards")) {
                     // Returns all cards that have been required by the provided user
+                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                        return new Response(
+                                HttpStatus.UNAUTHORIZED,
+                                ContentType.JSON,
+                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                        );
+                    }
+                    // TODO check if user is the right user
+                    String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
+                    return getCardController().getCardsForUser(username);
                 }
                 if (request.getPathname().equals("/decks")) {
                     // Returns the cards that are owned by the uses and are put into the deck
                 }
                 if (request.getPathname().equals("/stats")) {
                     // Retrieves the stats for the requesting user.
+                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                        return new Response(
+                                HttpStatus.UNAUTHORIZED,
+                                ContentType.JSON,
+                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                        );
+                    }
                     String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
                     // TODO check access token for 401
                     return getUserController().getStats(username);
@@ -106,10 +124,24 @@ public class App implements ServerApp {
                 if (request.getPathname().equals("/packages")) {
                     // Create new card packages (requires admin)
                     // TODO check access token for 401
+                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                        return new Response(
+                                HttpStatus.UNAUTHORIZED,
+                                ContentType.JSON,
+                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                        );
+                    }
                     return getCardController().createPackage(request.getBody());
                 }
                 if (request.getPathname().equals("/transactions/packages")) {
                     // Acquire a card package for requesting user
+                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                        return new Response(
+                                HttpStatus.UNAUTHORIZED,
+                                ContentType.JSON,
+                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                        );
+                    }
                     String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
                     return getCardController().acquirePackage(username);
                 }
