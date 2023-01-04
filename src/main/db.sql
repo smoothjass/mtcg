@@ -3,18 +3,8 @@ DROP TABLE IF EXISTS trades CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS cards CASCADE;
-DROP TABLE IF EXISTS packages CASCADE;
 DROP TABLE IF EXISTS cardtypes CASCADE;
 DROP TABLE IF EXISTS elements CASCADE;
-
-create table packages
-(
-    package_id serial
-        primary key
-);
-
-alter table packages
-    owner to swe1user;
 
 create table roles
 (
@@ -82,12 +72,10 @@ create table cards
     element_id  integer  not null
         constraint fk_element
             references elements,
-    user_id uuid
+    user_id uuid default null
         constraint fk_owner
             references users,
-    package_id integer
-        constraint fk_package
-            references packages,
+    package_id UUID,
     used_in_deck    boolean default false not null,
     used_in_trade   boolean default false not null
 );

@@ -14,15 +14,15 @@ public class Card {
     @JsonAlias({"id"})
     UUID id;
     @JsonAlias({"damage"})
-    int damage;
+    Integer damage;
     @JsonAlias({"cardtype_id"})
-    int cardtype_id;
+    Integer cardtype_id;
     @JsonAlias({"element_id"})
-    int element_id;
+    Integer element_id;
     @JsonAlias({"user_id"})
     UUID user_id;
     @JsonAlias({"package_id"})
-    int package_id;
+    UUID package_id;
     @JsonAlias({"used_in_deck"})
     boolean used_in_deck;
     @JsonAlias({"used_in_trade"})

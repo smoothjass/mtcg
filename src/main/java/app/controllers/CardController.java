@@ -25,13 +25,13 @@ public class CardController extends Controller {
     public Response createPackage(String body) {
         try {
             ArrayList tempCards = getObjectMapper().readValue(body, ArrayList.class);
-            ArrayList<CardDTO> cards = new ArrayList<CardDTO>();
+            ArrayList<CardDTO> newCards = new ArrayList<CardDTO>();
             for(Object card: tempCards) {
-                cards.add(getObjectMapper().readValue(getObjectMapper().writeValueAsString(card), CardDTO.class));
+                newCards.add(getObjectMapper().readValue(getObjectMapper().writeValueAsString(card), CardDTO.class));
             }
-            PackageDTO newPackage = getCardRepository().postPackage(cards);
+            PackageDTO newPackage = getCardRepository().postPackage(newCards);
             if (newPackage != null){
-                // TODO add to cache
+                getCardRepository().getPackageCache().put(newPackage.getId(), newPackage);
                 return new Response(
                         HttpStatus.CREATED,
                         ContentType.JSON,

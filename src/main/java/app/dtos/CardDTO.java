@@ -21,6 +21,8 @@ public class CardDTO {
     String element;
     @JsonAlias({"user_id"})
     UUID user_id;
+    @JsonAlias({"package_id"})
+    UUID package_id;
     @JsonAlias({"used_in_deck"})
     boolean used_in_deck;
     @JsonAlias({"used_in_trade"})
