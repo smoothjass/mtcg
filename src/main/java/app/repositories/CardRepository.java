@@ -5,6 +5,7 @@ import app.daos.CardtypeDao;
 import app.daos.ElementDao;
 import app.dtos.CardDTO;
 import app.dtos.PackageDTO;
+import app.dtos.UserProfileDTO;
 import app.models.Card;
 import app.models.Cardtype;
 import app.models.Element;
@@ -28,25 +29,50 @@ public class CardRepository {
     HashMap<String, Integer> inverseCardtypeCache = new HashMap<>();
     HashMap<Integer, Element> elementCache = new HashMap<>();
     HashMap<String, Integer> inverseElementCache = new HashMap<>();
-    @Getter
-    HashMap<UUID, PackageDTO> packageCache = new HashMap<>();
 
     public CardRepository(CardDao cardDao, CardtypeDao cardtypeDao, ElementDao elementDao) {
         setCardDao(cardDao);
         setCardtypeDao(cardtypeDao);
         setElementDao(elementDao);
+
+        try {
+            cardtypeCache = getCardtypeDao().read();
+            cardtypeCache.forEach((key, value) -> {
+                inverseCardtypeCache.put(value.getName(), key);
+            });
+            elementCache = getElementDao().read();
+            elementCache.forEach((key, value) -> {
+                inverseElementCache.put(value.getName(), key);
+            });
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    public void updateCardCache() {
+        try {
+            HashMap<UUID, Card> cards = getCardDao().read();
+            for(Card card: new ArrayList<>(cards.values())) {
+                CardDTO cardDTO = new CardDTO(
+                        card.getId(),
+                        card.getDamage(),
+                        cardtypeCache.get(card.getCardtype_id()).getName(),
+                        elementCache.get(card.getElement_id()).getName(),
+                        card.getUser_id(),
+                        card.getPackage_id(),
+                        card.isUsed_in_deck(),
+                        card.isUsed_in_trade()
+                );
+                cardCache.put(cardDTO.getId(), cardDTO);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public HashMap<UUID, CardDTO> getAll() {
         try {
             if (!cardCache.isEmpty()) {
                 return cardCache;
-            }
-            if (cardtypeCache.isEmpty()) {
-                cardtypeCache = getCardtypeDao().read();
-            }
-            if(elementCache.isEmpty()) {
-                elementCache = getElementDao().read();
             }
             HashMap<UUID, Card> cards = getCardDao().read();
             for(Card card: new ArrayList<>(cards.values())) {
@@ -80,22 +106,6 @@ public class CardRepository {
             }
         }
         try {
-        if (inverseCardtypeCache.isEmpty()) {
-            if (cardtypeCache.isEmpty()) {
-                cardtypeCache = getCardtypeDao().read();
-            }
-            cardtypeCache.forEach((key, value) -> {
-                inverseCardtypeCache.put(value.getName(), key);
-            });
-        }
-        if (inverseElementCache.isEmpty()) {
-            if (elementCache.isEmpty()) {
-                elementCache = getElementDao().read();
-            }
-            elementCache.forEach((key, value) -> {
-                inverseElementCache.put(value.getName(), key);
-            });
-        }
         UUID packageId = UUID.randomUUID();
         ArrayList<CardDTO> tempCards = new ArrayList<>();
         for (CardDTO newCard: newCards) {
@@ -125,6 +135,44 @@ public class CardRepository {
         }
         PackageDTO newPackage = new PackageDTO(packageId, tempCards);
         return newPackage;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public PackageDTO acquirePackage(UserProfileDTO user) {
+        if (cardCache.isEmpty()) {
+            cardCache = getAll();
+        }
+        ArrayList<CardDTO> cards = new ArrayList<>(cardCache.values());
+        UUID packageId = null;
+        for (CardDTO card: cards) {
+            if (card.getPackage_id() != null) {
+                packageId = card.getPackage_id();
+                break;
+            }
+        }
+        if (packageId == null) {
+            return null;
+        }
+        try {
+            ArrayList<Card> updatedCards = getCardDao().update(user.getId(), packageId);
+            ArrayList<CardDTO> tempCards = new ArrayList<>();
+            for (Card card: updatedCards) {
+                CardDTO cardDTO = new CardDTO(
+                    card.getId(),
+                    card.getDamage(),
+                    cardtypeCache.get(card.getCardtype_id()).getName(),
+                    elementCache.get(card.getElement_id()).getName(),
+                    card.getUser_id(),
+                    card.getPackage_id(),
+                    card.isUsed_in_deck(),
+                    card.isUsed_in_trade()
+                );
+                tempCards.add(cardDTO);
+            }
+            updateCardCache();
+            return new PackageDTO(packageId, tempCards);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

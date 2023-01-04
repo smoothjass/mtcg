@@ -1,16 +1,15 @@
 package app.daos;
 
 import app.models.Card;
-import app.models.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.xml.transform.Result;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -75,6 +74,40 @@ public class CardDao implements Dao<Card, UUID>{
     @Override
     public Card update(String s, Card card) throws SQLException {
         return null;
+    }
+
+    public ArrayList<Card> update(UUID user, UUID pack) throws SQLException {
+        String update = "UPDATE cards SET user_id = ? WHERE package_id = ?;";
+        PreparedStatement stmt1 = getConnection().prepareStatement(update);
+        stmt1.setObject(1, user);
+        stmt1.setObject(2, pack);
+        int Updateresult = stmt1.executeUpdate();
+
+        String query = "SELECT * FROM cards WHERE package_id = ?;";
+        PreparedStatement stmt2 = getConnection().prepareStatement(query);
+        stmt2.setObject(1, pack);
+        ResultSet result = stmt2.executeQuery();
+        ArrayList<Card> cards = new ArrayList<>();
+        while (result.next()) {
+            Card card = new Card (
+                (UUID) result.getObject(1),
+                result.getInt(2),
+                result.getInt(3),
+                result.getInt(4),
+                (UUID) result.getObject(5),
+                (UUID) result.getObject(6),
+                result.getBoolean(7),
+                result.getBoolean(8)
+            );
+            cards.add(card);
+        }
+
+        String update2 = "UPDATE cards SET package_id = null WHERE package_id = ?;";
+        PreparedStatement stmt3 = getConnection().prepareStatement(update2);
+        stmt3.setObject(1, pack);
+        int Updateresult2 = stmt3.executeUpdate();
+
+        return cards;
     }
 
     @Override

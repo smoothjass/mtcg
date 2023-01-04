@@ -17,6 +17,7 @@ import server.ServerApp;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import static java.lang.Integer.parseInt;
 
@@ -51,7 +52,7 @@ public class App implements ServerApp {
 
         // Controllers
         UserController userController = new UserController(userProfileRepository);
-        CardController cardController = new CardController(cardRepository);
+        CardController cardController = new CardController(cardRepository, userProfileRepository);
 
         setUserController(userController);
         setCardController(cardController);
@@ -108,7 +109,9 @@ public class App implements ServerApp {
                     return getCardController().createPackage(request.getBody());
                 }
                 if (request.getPathname().equals("/transactions/packages")) {
-                    // Acquire a card package
+                    // Acquire a card package for requesting user
+                    String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
+                    return getCardController().acquirePackage(username);
                 }
                 if (request.getPathname().equals("/battles")) {
                     // Enters the lobby to start a battle
