@@ -70,37 +70,58 @@ public class App implements ServerApp {
                 if (request.getPathname().matches("/users/[a-zA-Z0-9]*")) {
                     String username = request.getPathname().split("/")[2];
                     // Retrieves the user data for the username provided in the route.
-                    // TODO Only the admin or the matching user can successfully retrieve the data. 401 Response. access token in body
-
+                    String authUser = getUserFromAuthToken(request.getAuthToken());
+                    if (!Objects.equals(authUser, "admin")) {
+                        if (authUser == null) {
+                            return new Response(
+                                HttpStatus.UNAUTHORIZED,
+                                ContentType.JSON,
+                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                            );
+                        }
+                    }
                     return getUserController().getUserProfile(username);
                 }
                 if (request.getPathname().equals("/cards")) {
                     // Returns all cards that have been required by the provided user
-                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                    String username = getUserFromAuthToken(request.getAuthToken());
+                    if (username == null) {
                         return new Response(
-                                HttpStatus.UNAUTHORIZED,
-                                ContentType.JSON,
-                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": Access token missing or invalid }"
                         );
                     }
-                    // TODO check if user is the right user
-                    String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
-                    return getCardController().getCardsForUser(username);
+                    return getCardController().getCardsForUser(username, false, false);
                 }
                 if (request.getPathname().equals("/decks")) {
                     // Returns the cards that are owned by the uses and are put into the deck
+                    String username = getUserFromAuthToken(request.getAuthToken());
+                    if (username == null) {
+                        return new Response(
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": Access token missing or invalid }"
+                        );
+                    }
+                    boolean plainFormat = false;
+                    if (request.getParams() != null) {
+                        if (Objects.equals(request.getParams(), "format=plain")) {
+                            plainFormat = true;
+                        }
+                    }
+                    return getCardController().getCardsForUser(username, true, plainFormat);
                 }
                 if (request.getPathname().equals("/stats")) {
                     // Retrieves the stats for the requesting user.
-                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                    String username = getUserFromAuthToken(request.getAuthToken());
+                    if (username == null) {
                         return new Response(
-                                HttpStatus.UNAUTHORIZED,
-                                ContentType.JSON,
-                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": Access token missing or invalid }"
                         );
                     }
-                    String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
-                    // TODO check access token for 401
                     return getUserController().getStats(username);
                 }
                 if (request.getPathname().equals("/scores")) {
@@ -123,26 +144,26 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/packages")) {
                     // Create new card packages (requires admin)
-                    // TODO check access token for 401
-                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                    String username = getUserFromAuthToken(request.getAuthToken());
+                    if (username == null) {
                         return new Response(
-                                HttpStatus.UNAUTHORIZED,
-                                ContentType.JSON,
-                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": Access token missing or invalid }"
                         );
                     }
                     return getCardController().createPackage(request.getBody());
                 }
                 if (request.getPathname().equals("/transactions/packages")) {
                     // Acquire a card package for requesting user
-                    if (!request.getAuthToken().matches("[a-zA-Z0-9]*-mtcgToken")) {
+                    String username = getUserFromAuthToken(request.getAuthToken());
+                    if (username == null) {
                         return new Response(
-                                HttpStatus.UNAUTHORIZED,
-                                ContentType.JSON,
-                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": Access token missing or invalid }"
                         );
                     }
-                    String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
                     return getCardController().acquirePackage(username);
                 }
                 if (request.getPathname().equals("/battles")) {
@@ -164,6 +185,15 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/decks")) {
                     // Configures the deck with four provided cards
+                    String username = getUserFromAuthToken(request.getAuthToken());
+                    if (username == null) {
+                        return new Response(
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": Access token missing or invalid }"
+                        );
+                    }
+                    return getCardController().configureDeck(username, request.getBody());
                 }
             }
             case DELETE: {
@@ -176,5 +206,13 @@ public class App implements ServerApp {
 
         // default response
         return new Response(HttpStatus.NOT_FOUND, ContentType.JSON, "{ \"data\": null, \"error\": \"Route Not Found\" }");
+    }
+
+    private String getUserFromAuthToken(String authToken) {
+        if (!authToken.matches("[a-zA-Z0-9]*-mtcgToken")) {
+            return null;
+        }
+        // TODO check if user is the right user, if not return null
+        return authToken.substring(0, authToken.length()-"-mtcgToken".length());
     }
 }

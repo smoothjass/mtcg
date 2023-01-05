@@ -1,5 +1,6 @@
 package app.daos;
 
+import app.dtos.CardDTO;
 import app.models.Card;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -74,6 +75,14 @@ public class CardDao implements Dao<Card, UUID>{
     @Override
     public Card update(String s, Card card) throws SQLException {
         return null;
+    }
+
+    public void update(boolean newValue, CardDTO card) throws SQLException {
+        String update = "UPDATE cards SET used_in_deck = ? WHERE card_id = ?;";
+        PreparedStatement stmt1 = getConnection().prepareStatement(update);
+        stmt1.setBoolean(1, newValue);
+        stmt1.setObject(2, card.getId());
+        int UpdateResult = stmt1.executeUpdate();
     }
 
     public ArrayList<Card> update(UUID user, UUID pack) throws SQLException {

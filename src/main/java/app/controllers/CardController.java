@@ -13,7 +13,11 @@ import lombok.Getter;
 import lombok.Setter;
 import server.Response;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.UUID;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter(AccessLevel.PRIVATE)
@@ -88,7 +92,7 @@ public class CardController extends Controller {
         }
     }
 
-    public Response getCardsForUser(String username) {
+    public Response getCardsForUser(String username, boolean deckRequested, boolean plainFormat) {
         UserProfileDTO user = getUserProfileRepository().getByUsername(username);
         if (user == null) {
             return new Response(
@@ -98,19 +102,83 @@ public class CardController extends Controller {
             );
         }
         ArrayList<CardDTO> cards = getCardRepository().getForUser(user.getId());
+        if (deckRequested) {
+            cards.removeIf(card -> !card.isUsed_in_deck());
+        }
+        String content = "";
         if (cards.isEmpty()) {
+            if (deckRequested) {
+                content = "{ \"description\": the deck doesn't have any cards, \"data\": null, \"error\": null } ";
+            }
+            else {
+                content = "{ \"description\": the user doesn't have any cards, \"data\": null, \"error\": null } ";
+            }
             return new Response(
                 HttpStatus.NO_CONTENT,
                 ContentType.JSON,
-                "{ \"description\": the user doesn't have any cards, \"data\": null, \"error\": null } "
+                content
             );
         }
         try {
             String cardsJSON = getObjectMapper().writeValueAsString(cards);
-            return new Response(
+            if (deckRequested) {
+                content = "{\"description\": the deck has cards, \"data\": "+ cardsJSON + ", \"error\": null } ";
+                if (plainFormat) { // TODO string schöner machen
+                    content = cardsJSON.toString();
+                    return new Response(
+                        HttpStatus.OK,
+                        ContentType.TEXT,
+                        content
+                    );
+                }
+            }
+            else{
+                content = "{\"description\": the user has cards, \"data\": "+ cardsJSON + ", \"error\": null } ";
+            }
+            return new Response( // TODO JSON schöner machen
                 HttpStatus.OK,
                 ContentType.JSON,
-                "{\"description\": the user has cards, \"data\": "+ cardsJSON + ", \"error\": null } "
+                content
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Response configureDeck(String username, String body) {
+        try {
+            ArrayList deckCards = getObjectMapper().readValue(body, ArrayList.class);
+            if (deckCards.size() != 4) {
+                return new Response(
+                    HttpStatus.NOT_FOUND,
+                    ContentType.JSON,
+                    "{\"data\": null, \"error\": The provided deck did not include the required amount of cards } "
+                );
+            }
+            UserProfileDTO user = getUserProfileRepository().getByUsername(username);
+            if (user == null) {
+                return new Response(
+                    HttpStatus.NOT_FOUND,
+                    ContentType.JSON,
+                    "{\"data\": null, \"error\": User does not exist } "
+                );
+            }
+            ArrayList<CardDTO> cards = getCardRepository().getForUser(user.getId());
+            cards.removeIf(CardDTO::isUsed_in_trade);
+            cards.removeIf(card -> !deckCards.contains(card.getId().toString()));
+
+            if (cards.size() != 4){
+                return new Response(
+                    HttpStatus.NOT_FOUND,
+                    ContentType.JSON,
+                    "{\"data\": null, \"error\": At least one of the provided cards does not belong to the user or is not available } "
+                );
+            }
+            getCardRepository().configureDeck(cards);
+            return new Response(
+                    HttpStatus.OK,
+                    ContentType.JSON,
+                    "{ \"description\": the deck has been successfully configured, \"data\": null, \"error\": null } "
             );
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

@@ -184,10 +184,22 @@ public class CardRepository {
             cardCache = getAll();
         }
         cardCache.forEach((key, value) -> {
-            if (value.getUser_id() == id) {
+            if (value.getUser_id().equals(id)) {
+                // System.out.println(value);
                 cards.add(value);
             }
         });
         return cards;
+    }
+
+    public void configureDeck(ArrayList<CardDTO> cards) {
+        for(CardDTO card: cards) {
+            try {
+                getCardDao().update(true, card);
+                updateCardCache();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
