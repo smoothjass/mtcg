@@ -84,7 +84,6 @@ public class App implements ServerApp {
                         );
                     }
                     // TODO check if user is the right user
-                    System.out.println("test");
                     String username = request.getAuthToken().substring(0, request.getAuthToken().length()-"-mtcgToken".length());
                     return getCardController().getCardsForUser(username);
                 }
