@@ -21,4 +21,6 @@ public class Trade {
     int element_id;
     @JsonAlias({"min_damage"})
     int min_damage;
+
+    public Trade() {}
 }

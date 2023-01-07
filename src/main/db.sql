@@ -38,6 +38,13 @@ create table users
 alter table users
     owner to swe1user;
 
+create table battlerequests (
+    battlerequest_id serial primary key,
+    username varchar(255) not null unique
+        constraint fk_user
+            references users(username)
+);
+
 create table cardtypes
 (
     cardtype_id serial

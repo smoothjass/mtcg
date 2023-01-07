@@ -27,4 +27,6 @@ public class Card {
     boolean used_in_deck;
     @JsonAlias({"used_in_trade"})
     boolean used_in_trade;
+
+    public Card() {}
 }

@@ -47,7 +47,7 @@ public class RoleDao implements Dao<Role, Integer>{
     }
 
     @Override
-    public void delete() throws SQLException {
+    public void delete(Role role) throws SQLException {
 
     }
 }

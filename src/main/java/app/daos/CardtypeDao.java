@@ -47,7 +47,7 @@ public class CardtypeDao implements Dao<Cardtype, Integer> {
     }
 
     @Override
-    public void delete() throws SQLException {
+    public void delete(Cardtype cardtype) throws SQLException {
 
     }
 }

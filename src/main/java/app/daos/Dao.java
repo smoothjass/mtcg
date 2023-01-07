@@ -17,5 +17,5 @@ public interface Dao<T, ID> {
     // we already have all the information on the client
     // we want to reduce complexity
     T update(String s, T t) throws SQLException;
-    void delete() throws SQLException;
+    void delete(T t) throws SQLException;
 }

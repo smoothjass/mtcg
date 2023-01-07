@@ -1,6 +1,7 @@
 package server;
 
 import app.App;
+import app.models.BattleRequest;
 import http.ContentType;
 import http.HttpStatus;
 import lombok.AccessLevel;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)

@@ -23,7 +23,7 @@ public class TradeDao implements Dao<Trade, UUID>{
     }
 
     @Override
-    public void delete() throws SQLException {
+    public void delete(Trade trade) throws SQLException {
 
     }
 }

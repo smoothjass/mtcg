@@ -1,8 +1,10 @@
 package app;
 
 import app.controllers.CardController;
+import app.controllers.GameController;
 import app.controllers.UserController;
 import app.daos.*;
+import app.repositories.BattleRequestRepository;
 import app.repositories.CardRepository;
 import app.repositories.UserProfileRepository;
 import app.services.DatabaseService;
@@ -18,7 +20,6 @@ import server.ServerApp;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.UUID;
 
 import static java.lang.Integer.parseInt;
 
@@ -27,6 +28,7 @@ import static java.lang.Integer.parseInt;
 public class App implements ServerApp {
     private UserController userController;
     private CardController cardController;
+    private GameController gameController;
     private Connection connection;
     private String sessionUserToken = "";
 
@@ -46,17 +48,21 @@ public class App implements ServerApp {
         CardDao cardDao = new CardDao(getConnection());
         CardtypeDao cardtypeDao = new CardtypeDao(getConnection());
         ElementDao elementDao = new ElementDao(getConnection());
+        BattleRequestDao battleRequestDao = new BattleRequestDao(getConnection());
 
         // Repos
         UserProfileRepository userProfileRepository = new UserProfileRepository(userDao, roleDao);
         CardRepository cardRepository = new CardRepository(cardDao, cardtypeDao, elementDao);
+        BattleRequestRepository battleRequestRepository = new BattleRequestRepository(battleRequestDao);
 
         // Controllers
         UserController userController = new UserController(userProfileRepository);
         CardController cardController = new CardController(cardRepository, userProfileRepository);
+        GameController gameController = new GameController(cardRepository, userProfileRepository, battleRequestRepository);
 
         setUserController(userController);
         setCardController(cardController);
+        setGameController(gameController);
     }
 
     // the handleRequest Method is used in the server
@@ -168,6 +174,15 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/battles")) {
                     // Enters the lobby to start a battle
+                    String username = getUserFromAuthToken(request.getAuthToken());
+                    if (username == null) {
+                        return new Response(
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": Access token missing or invalid }"
+                        );
+                    }
+                    return getGameController().enterLobby(username);
                 }
                 if (request.getPathname().equals("/tradings")) {
                     // Creates a new trading deal.

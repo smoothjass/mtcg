@@ -120,7 +120,7 @@ public class CardDao implements Dao<Card, UUID>{
     }
 
     @Override
-    public void delete() throws SQLException {
+    public void delete(Card card) throws SQLException {
 
     }
 }

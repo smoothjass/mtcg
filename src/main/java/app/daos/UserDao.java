@@ -155,7 +155,7 @@ public class UserDao implements Dao<User, UUID> {
     }
 
     @Override
-    public void delete() throws SQLException {
+    public void delete(User user) throws SQLException {
 
     }
 }

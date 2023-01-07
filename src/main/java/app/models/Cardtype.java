@@ -15,4 +15,6 @@ public class Cardtype {
     String name;
     @JsonAlias({"monster"})
     boolean monster;
+
+    public Cardtype() {}
 }

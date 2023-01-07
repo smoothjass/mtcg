@@ -45,7 +45,7 @@ public class ElementDao implements Dao<Element, Integer> {
     }
 
     @Override
-    public void delete() throws SQLException {
+    public void delete(Element element) throws SQLException {
 
     }
 }

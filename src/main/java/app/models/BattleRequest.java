@@ -8,11 +8,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Element {
+public class BattleRequest {
     @JsonAlias({"id"})
-    int id;
-    @JsonAlias({"name"})
-    String name;
+    Integer battle_id;
 
-    public Element() {}
+    @JsonAlias({"requestingUser"})
+    String username;
+
+    public BattleRequest(String username) {
+        setUsername(username);
+    }
 }
