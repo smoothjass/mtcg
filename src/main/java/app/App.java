@@ -182,6 +182,10 @@ public class App implements ServerApp {
                             "{ \"data\": null, \"error\": Access token missing or invalid }"
                         );
                     }
+                    Response checkDeck = getCardController().getCardsForUser(username, true, false);
+                    if (checkDeck.getStatusCode() != 200) {
+                        return checkDeck;
+                    }
                     return getGameController().enterLobby(username);
                 }
                 if (request.getPathname().equals("/tradings")) {
