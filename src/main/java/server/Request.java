@@ -1,5 +1,6 @@
 package server;
 
+import com.google.common.annotations.VisibleForTesting;
 import http.Method;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -36,7 +37,7 @@ public class Request {
         buildRequest(inputStream);
     }
 
-    private void buildRequest(BufferedReader inputStream) {
+    protected void buildRequest(BufferedReader inputStream) {
         try {
             String line = inputStream.readLine();
             System.out.println(line);

@@ -8,6 +8,7 @@ import app.repositories.BattleRequestRepository;
 import app.repositories.CardRepository;
 import app.repositories.UserProfileRepository;
 import app.services.DatabaseService;
+import com.google.common.annotations.VisibleForTesting;
 import http.ContentType;
 import http.HttpStatus;
 import lombok.AccessLevel;
@@ -228,7 +229,7 @@ public class App implements ServerApp {
         return new Response(HttpStatus.NOT_FOUND, ContentType.JSON, "{ \"data\": null, \"error\": \"Route Not Found\" }");
     }
 
-    private String getUserFromAuthToken(String authToken) {
+    protected String getUserFromAuthToken(String authToken) {
         if (!authToken.matches("[a-zA-Z0-9]*-mtcgToken")) {
             return null;
         }
