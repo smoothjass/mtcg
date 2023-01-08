@@ -77,6 +77,33 @@ public class CardDao implements Dao<Card, UUID>{
         return null;
     }
 
+    public Card update(UUID userId, CardDTO card) throws SQLException {
+        String update = "UPDATE cards SET user_id = ?, used_in_deck = false WHERE card_id = ?;";
+        PreparedStatement stmt = getConnection().prepareStatement(update);
+        stmt.setObject(1, userId);
+        stmt.setObject(2, card.getId());
+        int updateResult = stmt.executeUpdate();
+
+        String query = "SELECT * FROM cards WHERE card_id = ?;";
+        PreparedStatement stmt2 = getConnection().prepareStatement(query);
+        stmt2.setObject(1, card.getId());
+        ResultSet result = stmt2.executeQuery();
+        if (result.next()) {
+            Card updatedCard = new Card(
+                    (UUID) result.getObject(1),
+                    result.getInt(2),
+                    result.getInt(3),
+                    result.getInt(4),
+                    (UUID) result.getObject(5),
+                    (UUID) result.getObject(6),
+                    result.getBoolean(7),
+                    result.getBoolean(8)
+            );
+            return updatedCard;
+        }
+        return null;
+    }
+
     public void update(boolean newValue, CardDTO card) throws SQLException {
         String update = "UPDATE cards SET used_in_deck = ? WHERE card_id = ?;";
         PreparedStatement stmt1 = getConnection().prepareStatement(update);

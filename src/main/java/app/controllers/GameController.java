@@ -61,6 +61,17 @@ public class GameController extends Controller{
                 getBattleRequestRepository().postBattleRequest(battleRequest);
                 setGameLog("");
                 this.wait();
+
+                // game was carried out but stats couldn't be written
+                if (Objects.equals(getGameLog(), "")) {
+                    return new Response(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            ContentType.JSON,
+                            "{ \"data\": null, \"error\": internal server error } "
+                    );
+                }
+
+                // all is good
                 return new Response(
                     HttpStatus.OK,
                     ContentType.TEXT,
@@ -81,16 +92,26 @@ public class GameController extends Controller{
                     "{ \"data\": null, \"error\": battle request for this user exists already }"
                 );
             }
-            // battle, persist battle data in DB, delete battle request from DB, notify
-            System.out.println("battle, persist battle data in DB, delete battle request from DB");
+            // get a battlerequest from the cache and delete it from db and cache
             BattleRequest battleRequest = (BattleRequest) battleRequests.values().toArray()[0];
             getBattleRequestRepository().deleteRequest(battleRequest);
 
+            // carry out the battle
             String content = battle(battleRequest.getUsername(), username);
             setGameLog(content);
             // TODO persist game outcome to db
-
             this.notify();
+
+            // game was carried out but stats couldn't be written to db for some yet unknown reason:
+            if (Objects.equals(getGameLog(), "")) {
+                return new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.JSON,
+                    "{ \"data\": null, \"error\": internal server error } "
+                );
+            }
+
+            // all is good
             return new Response(
                 HttpStatus.OK,
                 ContentType.TEXT,
@@ -155,25 +176,39 @@ public class GameController extends Controller{
                     round =
                         player2.getUsername() + "'s " + player2Deck.get(index2).getElement() + " " + player2Deck.get(index2).getCardtype() + " defeated " +
                         player1.getUsername() + "'s " + player1Deck.get(index1).getElement() + " " + player1Deck.get(index1).getCardtype() + "\n";
-                    log.append("round ").append(Integer.toString(i+1)).append(round);
+                    log.append("round ").append(Integer.toString(i+1)).append(": ").append(round);
                     player2Deck.add(player1Deck.get(index1));
                     player1Deck.remove(index1);
                     break;
             }
         }
+        Integer gameStatsUpdate = 0;
         if(player1Deck.size() > player2Deck.size()) {
             log.append(player1.getUsername()).append(" won\n");
-            // TODO elo and game stats to db
+            gameStatsUpdate = getUserProfileRepository().updateUser(player1, player2, false);
         }
         if(player2Deck.size() > player1Deck.size()) {
             log.append(player2.getUsername()).append(" won\n");
-            // TODO elo and game stats to db
+            gameStatsUpdate = getUserProfileRepository().updateUser(player2, player1, false);
         }
         if(player1Deck.size() == player2Deck.size()) {
             log.append("game result: draw\n");
-            // TODO elo and game stats to db
+            gameStatsUpdate = getUserProfileRepository().updateUser(player1, player2, true);
         }
-        // TODO important: update user_id in cards in db and update cardsCache
+        if (gameStatsUpdate < 0 ) {
+            return "";
+        }
+        for(CardDTO card: player1Deck) {
+            if (card.getUser_id() != player1.getId()) {
+                getCardRepository().updateCard(player1.getId(), card);
+            }
+        }
+        for(CardDTO card: player2Deck) {
+            if (card.getUser_id() != player2.getId()) {
+                getCardRepository().updateCard(player2.getId(), card);
+            }
+        }
+        getCardRepository().updateCardCache();
         return log.toString();
     }
 

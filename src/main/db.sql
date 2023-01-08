@@ -1,5 +1,6 @@
 --DROP TABLES-----------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS trades CASCADE;
+DROP TABLE IF EXISTS battlerequests CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS cards CASCADE;
@@ -32,6 +33,7 @@ create table users
     elo          smallint default 100 not null,
     games_played smallint default 0   not null,
     games_won    smallint default 0   not null,
+    games_lost   smallint default 0   not null,
     coins        smallint default 20  not null
 );
 
@@ -39,11 +41,14 @@ alter table users
     owner to swe1user;
 
 create table battlerequests (
-    battlerequest_id serial primary key,
-    username varchar(255) not null unique
-        constraint fk_user
-            references users(username)
+                                battlerequest_id serial primary key,
+                                username varchar(255) not null unique
+                                    constraint fk_user
+                                        references users(username)
 );
+
+alter table battlerequests
+    owner to swe1user;
 
 create table cardtypes
 (

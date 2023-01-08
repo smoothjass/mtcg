@@ -182,6 +182,7 @@ public class App implements ServerApp {
                             "{ \"data\": null, \"error\": Access token missing or invalid }"
                         );
                     }
+                    // the user cannot request a battle if they have no deck configured
                     Response checkDeck = getCardController().getCardsForUser(username, true, false);
                     if (checkDeck.getStatusCode() != 200) {
                         return checkDeck;

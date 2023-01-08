@@ -51,6 +51,7 @@ public class CardRepository {
 
     public void updateCardCache() {
         try {
+            cardCache.clear();
             HashMap<UUID, Card> cards = getCardDao().read();
             for(Card card: new ArrayList<>(cards.values())) {
                 CardDTO cardDTO = new CardDTO(
@@ -184,9 +185,11 @@ public class CardRepository {
             cardCache = getAll();
         }
         cardCache.forEach((key, value) -> {
-            if (value.getUser_id().equals(id)) {
-                // System.out.println(value);
-                cards.add(value);
+            if (value.getUser_id() != null) {
+                if (value.getUser_id().equals(id)) {
+                    // System.out.println(value);
+                    cards.add(value);
+                }
             }
         });
         return cards;
@@ -200,6 +203,14 @@ public class CardRepository {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    public void updateCard(UUID userID, CardDTO card) {
+        try {
+            Card updatedCard = getCardDao().update(userID, card);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 }

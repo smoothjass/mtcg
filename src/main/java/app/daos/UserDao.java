@@ -58,7 +58,8 @@ public class UserDao implements Dao<User, UUID> {
                     result.getInt(8),
                     result.getInt(9),
                     result.getInt(10),
-                    result.getInt(11)
+                    result.getInt(11),
+                    result.getInt(12)
             );
             return newUser;
         }
@@ -85,7 +86,8 @@ public class UserDao implements Dao<User, UUID> {
                     result.getInt(8),
                     result.getInt(9),
                     result.getInt(10),
-                    result.getInt(11)
+                    result.getInt(11),
+                    result.getInt(12)
             );
 
             users.put(user.getId(), user);
@@ -113,7 +115,8 @@ public class UserDao implements Dao<User, UUID> {
                     result.getInt(8),
                     result.getInt(9),
                     result.getInt(10),
-                    result.getInt(11)
+                    result.getInt(11),
+                    result.getInt(12)
             );
             System.out.println(user.getUsername() + user.getElo());
             users.add(user);
@@ -147,7 +150,8 @@ public class UserDao implements Dao<User, UUID> {
                     result.getInt(8),
                     result.getInt(9),
                     result.getInt(10),
-                    result.getInt(11)
+                    result.getInt(11),
+                    result.getInt(12)
             );
             return newUser;
         }
@@ -157,5 +161,69 @@ public class UserDao implements Dao<User, UUID> {
     @Override
     public void delete(User user) throws SQLException {
 
+    }
+
+    public Integer update(String username) throws SQLException {
+        String update = "UPDATE users SET coins = (coins-5) WHERE username = ?;";
+        PreparedStatement stmt = getConnection().prepareStatement(update);
+        stmt.setString(1, username);
+        int updateResult = stmt.executeUpdate();
+
+        String query = "SELECT coins FROM users WHERE username = ?;";
+        PreparedStatement stmt1 = getConnection().prepareStatement(query);
+        stmt1.setString(1, username);
+        ResultSet result = stmt1.executeQuery();
+        if (result.next()) {
+            return result.getInt(1);
+        }
+        return -1;
+    }
+
+    public ArrayList<User> update(UserProfileDTO winningPlayer, UserProfileDTO losingPlayer, boolean draw) throws SQLException {
+        String update;
+        if (draw) {
+            update = "UPDATE users " +
+                    "SET games_played = (games_played+1) " +
+                    "WHERE username = ? OR username = ?;";
+        }
+        else{
+            update = "UPDATE users SET games_played = (games_played+1), " +
+                    "games_won = (games_won+1), " +
+                    "elo = (elo+3)" +
+                    "WHERE username = ?;" +
+                    "UPDATE users SET games_played = (games_played+1), " +
+                    "games_lost = (games_lost+1), " +
+                    "elo = (elo-5)" +
+                    "WHERE username = ?;";
+        }
+        PreparedStatement stmt = getConnection().prepareStatement(update);
+        stmt.setString(1, winningPlayer.getUsername());
+        stmt.setString(2, losingPlayer.getUsername());
+        int updateResult = stmt.executeUpdate();
+
+        String query = "SELECT * from users WHERE username = ? OR username = ?;";
+        PreparedStatement stmt1 = getConnection().prepareStatement(query);
+        stmt1.setString(1, winningPlayer.getUsername());
+        stmt1.setString(2, losingPlayer.getUsername());
+        ResultSet result = stmt1.executeQuery();
+        ArrayList<User> users = new ArrayList<>();
+        while(result.next()) {
+            User user = new User(
+                (UUID) result.getObject(1),
+                result.getString(2),
+                result.getString(3),
+                result.getString(4),
+                result.getString(5),
+                result.getString(6),
+                result.getInt(7),
+                result.getInt(8),
+                result.getInt(9),
+                result.getInt(10),
+                result.getInt(11),
+                result.getInt(12)
+            );
+            users.add(user);
+        }
+        return users;
     }
 }

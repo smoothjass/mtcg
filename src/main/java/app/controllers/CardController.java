@@ -80,7 +80,14 @@ public class CardController extends Controller {
             );
         }
         try {
-            // TODO reduce user's coins
+            Integer coins = getUserProfileRepository().reduceCoinsFor(user);
+            if (coins < 0) {
+                return new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.JSON,
+                    "{ \"data\": null, \"error\": internal server error } "
+                );
+            }
             String packageJSON = getObjectMapper().writeValueAsString(acquiredpackage);
             return new Response(
                 HttpStatus.OK,
@@ -94,6 +101,7 @@ public class CardController extends Controller {
 
     public Response getCardsForUser(String username, boolean deckRequested, boolean plainFormat) {
         UserProfileDTO user = getUserProfileRepository().getByUsername(username);
+        // System.out.println("user: " + user.getId());
         if (user == null) {
             return new Response(
                 HttpStatus.NOT_FOUND,
@@ -102,6 +110,7 @@ public class CardController extends Controller {
             );
         }
         ArrayList<CardDTO> cards = getCardRepository().getForUser(user.getId());
+        // System.out.println("cards: " + cards);
         if (deckRequested) {
             cards.removeIf(card -> !card.isUsed_in_deck());
         }

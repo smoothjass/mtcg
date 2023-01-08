@@ -163,7 +163,7 @@ public class UserController extends Controller {
                         "\"name\": " + userProfile.getName() + ", " +
                         "\"elo\": " + userProfile.getElo() + ", " +
                         "\"wins\": " + userProfile.getGames_won() + ", " +
-                        "\"losses\": " + (userProfile.getGames_played()-userProfile.getGames_won()) + ", " +
+                        "\"losses\": " + userProfile.getGames_lost() + ", " +
                         "}, " +
                         "\"error\": null }"
             );
@@ -179,8 +179,9 @@ public class UserController extends Controller {
                     "{" +
                     "\"name\": " + userProfile.getName() + ", " +
                     "\"elo\": " + userProfile.getElo() + ", " +
+                    "\"games\": " + userProfile.getGames_played() + ", " +
                     "\"wins\": " + userProfile.getGames_won() + ", " +
-                    "\"losses\": " + (userProfile.getGames_played()-userProfile.getGames_won()) + ", " +
+                    "\"losses\": " + userProfile.getGames_lost() + ", " +
                     "}, ";
             scores.add(temp);
         }

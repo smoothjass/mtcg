@@ -31,6 +31,8 @@ public class User {
     int games_played;
     @JsonAlias({"games_won"})
     int games_won;
+    @JsonAlias({"games_lost"})
+    int games_lost;
     @JsonAlias({"coins"})
     int coins;
 

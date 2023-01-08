@@ -8,6 +8,7 @@ import app.models.User;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import server.Response;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -66,6 +67,7 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                         user.getElo(),
                         user.getGames_played(),
                         user.getGames_won(),
+                        user.getGames_lost(),
                         user.getCoins()
                 );
                 userProfilesCache.put(userProfile.getId(), userProfile);
@@ -96,6 +98,7 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                         user.getElo(),
                         user.getGames_played(),
                         user.getGames_won(),
+                        user.getGames_lost(),
                         user.getCoins()
                 );
                 userProfiles.add(userProfile);
@@ -128,6 +131,7 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                         user.getElo(),
                         user.getGames_played(),
                         user.getGames_won(),
+                        user.getGames_lost(),
                         user.getCoins()
                 );
                 userProfilesCache.put(userProfile.getId(), userProfile);
@@ -172,6 +176,7 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
                         user.getElo(),
                         user.getGames_played(),
                         user.getGames_won(),
+                        user.getGames_lost(),
                         user.getCoins()
                 );
                 userProfilesCache.put(userProfile.getId(), userProfile);
@@ -181,5 +186,39 @@ public class UserProfileRepository implements Repository<UserProfileDTO, Integer
         }
         // now either null because no such user, or updated dto
         return getByUsername(username);
+    }
+
+    public Integer reduceCoinsFor(UserProfileDTO user) {
+        Integer coins = null;
+        try {
+            coins = getUserDao().update(user.getUsername());
+            if (coins < 0) {
+                return coins;
+            }
+            getUserProfilesCache().get(user.getId()).setCoins(coins);
+            return coins;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Integer updateUser(UserProfileDTO winningPlayer, UserProfileDTO losingPlayer, boolean draw) {
+        try {
+            ArrayList<User> updatedUsers = null;
+            updatedUsers = getUserDao().update(winningPlayer, losingPlayer, draw);
+            if (updatedUsers.isEmpty()) {
+                // in case we mysteriously couldn't write to db but did not throw sql exception
+                return -1;
+            }
+            for(User user: updatedUsers) {
+                getUserProfilesCache().get(user.getId()).setElo(user.getElo());
+                getUserProfilesCache().get(user.getId()).setGames_played(user.getGames_played());
+                getUserProfilesCache().get(user.getId()).setGames_won(user.getGames_won());
+                getUserProfilesCache().get(user.getId()).setGames_lost(user.getGames_lost());
+            }
+            return 1;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
