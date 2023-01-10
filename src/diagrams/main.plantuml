@@ -1,0 +1,567 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class App {
+  - userController: UserController
+  - gameController: GameController
+  - connection: Connection
+  - sessionUserToken: String
+  - cardController: CardController
+  - getUserController(): UserController
+  - getCardController(): CardController
+  - getGameController(): GameController
+  - getConnection(): Connection
+  - getSessionUserToken(): String
+  - setUserController(UserController): void
+  - setCardController(CardController): void
+  - setGameController(GameController): void
+  - setConnection(Connection): void
+  - setSessionUserToken(String): void
+  + handleRequest(Request): Response
+  # getUserFromAuthToken(String): String
+}
+class BattleRequest {
+  ~ battle_id: Integer
+  ~ username: String
+  + getBattle_id(): Integer
+  + getUsername(): String
+  + setBattle_id(Integer): void
+  + setUsername(String): void
+}
+class BattleRequestDao {
+  - connection: Connection
+  + update(String, BattleRequest): BattleRequest
+  - getConnection(): Connection
+  - setConnection(Connection): void
+  + delete(BattleRequest): void
+  + create(BattleRequest): BattleRequest
+  + read(): LinkedHashMap<String, BattleRequest>
+}
+class BattleRequestRepository {
+  ~ battleRequestDao: BattleRequestDao
+  ~ battleRequestsCache: LinkedHashMap<String, BattleRequest>
+  # getBattleRequestDao(): BattleRequestDao
+  # getBattleRequestsCache(): LinkedHashMap<String, BattleRequest>
+  - setBattleRequestDao(BattleRequestDao): void
+  - setBattleRequestsCache(LinkedHashMap<String, BattleRequest>): void
+  + deleteRequest(BattleRequest): void
+  + postBattleRequest(BattleRequest): void
+  + getAll(): LinkedHashMap<String, BattleRequest>
+}
+class Card {
+  ~ package_id: UUID
+  ~ damage: Integer
+  ~ element_id: Integer
+  ~ user_id: UUID
+  ~ used_in_trade: boolean
+  ~ cardtype_id: Integer
+  ~ used_in_deck: boolean
+  ~ id: UUID
+  + isUsed_in_deck(): boolean
+  + getId(): UUID
+  + getDamage(): Integer
+  + getCardtype_id(): Integer
+  + getElement_id(): Integer
+  + getUser_id(): UUID
+  + getPackage_id(): UUID
+  + isUsed_in_trade(): boolean
+  + setUser_id(UUID): void
+  + setUsed_in_deck(boolean): void
+  + setCardtype_id(Integer): void
+  + setId(UUID): void
+  + setElement_id(Integer): void
+  + setPackage_id(UUID): void
+  + setUsed_in_trade(boolean): void
+  + setDamage(Integer): void
+}
+class CardController {
+  ~ userProfileRepository: UserProfileRepository
+  ~ cardRepository: CardRepository
+  - getCardRepository(): CardRepository
+  - getUserProfileRepository(): UserProfileRepository
+  - setCardRepository(CardRepository): void
+  - setUserProfileRepository(UserProfileRepository): void
+  + acquirePackage(String): Response
+  + getCardsForUser(String, boolean, boolean): Response
+  + createPackage(String): Response
+  + configureDeck(String, String): Response
+}
+class CardDTO {
+  ~ used_in_deck: boolean
+  ~ element: String
+  ~ user_id: UUID
+  ~ used_in_trade: boolean
+  ~ id: UUID
+  ~ damage: int
+  ~ package_id: UUID
+  ~ cardtype: String
+  + getId(): UUID
+  + getDamage(): int
+  + setUsed_in_trade(boolean): void
+  + setUsed_in_deck(boolean): void
+  + setDamage(int): void
+  + setElement(String): void
+  + getCardtype(): String
+  + getElement(): String
+  + setPackage_id(UUID): void
+  + getUser_id(): UUID
+  + getPackage_id(): UUID
+  + isUsed_in_deck(): boolean
+  + setCardtype(String): void
+  + isUsed_in_trade(): boolean
+  + setId(UUID): void
+  + setUser_id(UUID): void
+}
+class CardDao {
+  - connection: Connection
+  - getConnection(): Connection
+  - setConnection(Connection): void
+  + read(): HashMap<UUID, Card>
+  + delete(Card): void
+  + update(UUID, CardDTO): Card
+  + update(UUID, UUID): ArrayList<Card>
+  + update(String, Card): Card
+  + create(Card): Card
+  + update(boolean, CardDTO): void
+}
+class CardRepository {
+  ~ cardDao: CardDao
+  ~ inverseCardtypeCache: HashMap<String, Integer>
+  ~ elementDao: ElementDao
+  ~ cardCache: HashMap<UUID, CardDTO>
+  ~ inverseElementCache: HashMap<String, Integer>
+  ~ cardtypeCache: HashMap<Integer, Cardtype>
+  ~ cardtypeDao: CardtypeDao
+  ~ elementCache: HashMap<Integer, Element>
+  # getCardCache(): HashMap<UUID, CardDTO>
+  # getCardDao(): CardDao
+  # getCardtypeDao(): CardtypeDao
+  # getElementDao(): ElementDao
+  # getCardtypeCache(): HashMap<Integer, Cardtype>
+  # getInverseCardtypeCache(): HashMap<String, Integer>
+  # getElementCache(): HashMap<Integer, Element>
+  # getInverseElementCache(): HashMap<String, Integer>
+  - setInverseCardtypeCache(HashMap<String, Integer>): void
+  - setCardtypeCache(HashMap<Integer, Cardtype>): void
+  - setElementDao(ElementDao): void
+  - setCardCache(HashMap<UUID, CardDTO>): void
+  - setElementCache(HashMap<Integer, Element>): void
+  - setCardDao(CardDao): void
+  - setCardtypeDao(CardtypeDao): void
+  - setInverseElementCache(HashMap<String, Integer>): void
+  + postPackage(ArrayList<CardDTO>): PackageDTO
+  + getForUser(UUID): ArrayList<CardDTO>
+  + getAll(): HashMap<UUID, CardDTO>
+  + updateCardCache(): void
+  + updateCard(UUID, CardDTO): void
+  + acquirePackage(UserProfileDTO): PackageDTO
+  + configureDeck(ArrayList<CardDTO>): void
+}
+class Cardtype {
+  ~ id: int
+  ~ name: String
+  ~ monster: boolean
+  + getId(): int
+  + getName(): String
+  + isMonster(): boolean
+  + setId(int): void
+  + setName(String): void
+  + setMonster(boolean): void
+}
+class CardtypeDao {
+  - connection: Connection
+  + create(Cardtype): Cardtype
+  - getConnection(): Connection
+  - setConnection(Connection): void
+  + read(): HashMap<Integer, Cardtype>
+  + delete(Cardtype): void
+  + update(String, Cardtype): Cardtype
+}
+enum ContentType << enumeration >> {
+  - type: String
+  + HTML: 
+  + TEXT: 
+  + JSON: 
+  + getType(): String
+  - setType(String): void
+  + valueOf(String): ContentType
+  + values(): ContentType[]
+}
+class Controller {
+  - objectMapper: ObjectMapper
+  + getObjectMapper(): ObjectMapper
+  + setObjectMapper(ObjectMapper): void
+}
+interface Dao<T, ID> << interface >> {
+  + read(): HashMap<ID, T>
+  + update(String, T): T
+  + create(T): T
+  + delete(T): void
+}
+class DatabaseService {
+  - connection: Connection
+  + getConnection(): Connection
+  + setConnection(Connection): void
+}
+class Element {
+  ~ id: int
+  ~ name: String
+  + getId(): int
+  + getName(): String
+  + setId(int): void
+  + setName(String): void
+}
+class ElementDao {
+  - connection: Connection
+  - getConnection(): Connection
+  - setConnection(Connection): void
+  + delete(Element): void
+  + read(): HashMap<Integer, Element>
+  + update(String, Element): Element
+  + create(Element): Element
+}
+class GameController {
+  ~ battleRequestRepository: BattleRequestRepository
+  ~ gameLog: String
+  ~ elements: HashMap<String, Integer>
+  ~ userProfileRepository: UserProfileRepository
+  ~ effectiveness: float[][]
+  ~ cardRepository: CardRepository
+  - getElements(): HashMap<String, Integer>
+  - getBattleRequestRepository(): BattleRequestRepository
+  - getCardRepository(): CardRepository
+  - getUserProfileRepository(): UserProfileRepository
+  - getEffectiveness(): float[][]
+  - getGameLog(): String
+  - setElements(HashMap<String, Integer>): void
+  - setEffectiveness(float[][]): void
+  - setCardRepository(CardRepository): void
+  - setUserProfileRepository(UserProfileRepository): void
+  - setBattleRequestRepository(BattleRequestRepository): void
+  - setGameLog(String): void
+  + enterLobby(String): Response
+  - compare(CardDTO, CardDTO): int
+  - battle(String, String): String
+}
+enum HttpStatus << enumeration >> {
+  + INTERNAL_SERVER_ERROR: 
+  - code: int
+  + CREATED: 
+  + NOT_FOUND: 
+  + OK: 
+  - message: String
+  + BAD_REQUEST: 
+  + UNAUTHORIZED: 
+  + FORBIDDEN: 
+  + CONFLICT: 
+  + NO_CONTENT: 
+  + getCode(): int
+  + getMessage(): String
+  - setCode(int): void
+  - setMessage(String): void
+  + valueOf(String): HttpStatus
+  + values(): HttpStatus[]
+}
+class Main {
+  + main(String[]): void
+}
+enum Method << enumeration >> {
+  + POST: 
+  + PUT: 
+  + DELETE: 
+  + GET: 
+  + values(): Method[]
+  + valueOf(String): Method
+}
+class PackageDTO {
+  ~ id: UUID
+  ~ cards: ArrayList<CardDTO>
+  + getId(): UUID
+  + getCards(): ArrayList<CardDTO>
+  + setId(UUID): void
+  + setCards(ArrayList<CardDTO>): void
+}
+interface Repository<T, ID> << interface >> {
+  + getById(ID): T
+  + getAll(): ArrayList<T>
+}
+class Request {
+  - method: Method
+  - AUTHORIZATION: String
+  - body: String
+  - authToken: String
+  - CONTENT_LENGTH: String
+  - params: String
+  - pathname: String
+  - contentType: String
+  - CONTENT_TYPE: String
+  - contentLength: Integer
+  + getParams(): String
+  + getMethod(): Method
+  # setAuthToken(String): void
+  + getPathname(): String
+  + getContentType(): String
+  + getContentLength(): Integer
+  + getBody(): String
+  + getAuthToken(): String
+  # setBody(String): void
+  # setMethod(Method): void
+  # setPathname(String): void
+  # setContentType(String): void
+  # setContentLength(Integer): void
+  # setParams(String): void
+  - getParamsFromInputLine(String[], Boolean): String
+  - getContentTypeFromInputLine(String): String
+  # buildRequest(BufferedReader): void
+  - getContentLengthFromInputLine(String): Integer
+  - getMethodFromInputLine(String[]): Method
+  - getPathnameFromInputLine(String[], Boolean): String
+  - getAuthorizationFromInputLine(String): String
+}
+class RequestHandler {
+  - outputStream: PrintWriter
+  - inputStream: BufferedReader
+  - clientSocket: Socket
+  - request: Request
+  - response: Response
+  - app: App
+  - getInputStream(): BufferedReader
+  - getRequest(): Request
+  - getResponse(): Response
+  - getOutputStream(): PrintWriter
+  - getClientSocket(): Socket
+  - getApp(): App
+  - setApp(App): void
+  - setRequest(Request): void
+  - setResponse(Response): void
+  - setOutputStream(PrintWriter): void
+  - setInputStream(BufferedReader): void
+  - setClientSocket(Socket): void
+  + run(): void
+}
+class Response {
+  - contentType: String
+  - content: String
+  - statusCode: int
+  - statusMessage: String
+  # build(): String
+  - getStatusMessage(): String
+  - getContentType(): String
+  - getContent(): String
+  - setStatusMessage(String): void
+  - setContentType(String): void
+  - setContent(String): void
+  + getStatusCode(): int
+  - setStatusCode(int): void
+}
+class Role {
+  ~ name: String
+  ~ id: Integer
+  + getId(): Integer
+  + getName(): String
+  + setId(Integer): void
+  + setName(String): void
+}
+class RoleDao {
+  - connection: Connection
+  - getConnection(): Connection
+  - setConnection(Connection): void
+  + create(Role): Role
+  + update(String, Role): Role
+  + read(): HashMap<Integer, Role>
+  + delete(Role): void
+}
+class Server {
+  - clientSocket: Socket
+  - port: int
+  - serverSocket: ServerSocket
+  - app: App
+  + start(): void
+  - getServerSocket(): ServerSocket
+  - getClientSocket(): Socket
+  - getApp(): App
+  - getPort(): int
+  - setServerSocket(ServerSocket): void
+  - setClientSocket(Socket): void
+  - setApp(App): void
+  - setPort(int): void
+  - run(): void
+}
+interface ServerApp << interface >> {
+  + handleRequest(Request): Response
+}
+class Trade {
+  ~ id: UUID
+  ~ card_id: UUID
+  ~ cardtype_id: int
+  ~ element_id: int
+  ~ min_damage: int
+  + getId(): UUID
+  + getCard_id(): UUID
+  + getCardtype_id(): int
+  + getElement_id(): int
+  + getMin_damage(): int
+  + setId(UUID): void
+  + setCard_id(UUID): void
+  + setCardtype_id(int): void
+  + setElement_id(int): void
+  + setMin_damage(int): void
+}
+class TradeDTO {
+  ~ min_damage: int
+  ~ card_id: UUID
+  ~ cardtype: String
+  ~ id: UUID
+  ~ element: String
+  + getId(): UUID
+  + getCard_id(): UUID
+  + getCardtype(): String
+  + getElement(): String
+  + getMin_damage(): int
+  + setId(UUID): void
+  + setCard_id(UUID): void
+  + setCardtype(String): void
+  + setElement(String): void
+  + setMin_damage(int): void
+}
+class TradeDao {
+  + update(String, Trade): Trade
+  + delete(Trade): void
+  + create(Trade): Trade
+  + read(): HashMap<UUID, Trade>
+}
+class User {
+  ~ password: String
+  ~ name: String
+  ~ role_id: int
+  ~ games_won: int
+  ~ games_played: int
+  ~ image: String
+  ~ username: String
+  ~ bio: String
+  ~ id: UUID
+  ~ coins: int
+  ~ games_lost: int
+  ~ elo: int
+  + getRole_id(): int
+  + getGames_lost(): int
+  + getCoins(): int
+  + setPassword(String): void
+  + setUsername(String): void
+  + setRole_id(int): void
+  + getId(): UUID
+  + setGames_won(int): void
+  + setGames_played(int): void
+  + setCoins(int): void
+  + getPassword(): String
+  + getUsername(): String
+  + getName(): String
+  + setImage(String): void
+  + setGames_lost(int): void
+  + getGames_won(): int
+  + setId(UUID): void
+  + getBio(): String
+  + getImage(): String
+  + setElo(int): void
+  + setBio(String): void
+  + setName(String): void
+  + getElo(): int
+  + getGames_played(): int
+}
+class UserController {
+  ~ userProfileRepository: UserProfileRepository
+  + updateUser(String, String): Response
+  + login(String): Response
+  + createUser(String): Response
+  - getUserProfileRepository(): UserProfileRepository
+  - setUserProfileRepository(UserProfileRepository): void
+  + getUserProfile(String): Response
+  + getScores(): Response
+  + getStats(String): Response
+}
+class UserDao {
+  - connection: Connection
+  - getConnection(): Connection
+  - setConnection(Connection): void
+  + delete(User): void
+  + read(String): ArrayList<User>
+  + update(String): Integer
+  + update(UserProfileDTO, UserProfileDTO, boolean): ArrayList<User>
+  + create(User): User
+  + read(): HashMap<UUID, User>
+  + update(String, User): User
+}
+class UserProfileDTO {
+  ~ games_played: int
+  ~ coins: int
+  ~ games_won: int
+  ~ username: String
+  ~ elo: int
+  ~ bio: String
+  ~ image: String
+  ~ id: UUID
+  ~ password: String
+  ~ name: String
+  ~ role: String
+  ~ games_lost: int
+  + getPassword(): String
+  + getGames_lost(): int
+  + setUsername(String): void
+  + getId(): UUID
+  + getUsername(): String
+  + getName(): String
+  + setCoins(int): void
+  + setBio(String): void
+  + setRole(String): void
+  + getBio(): String
+  + getImage(): String
+  + setId(UUID): void
+  + setImage(String): void
+  + setElo(int): void
+  + getCoins(): int
+  + setPassword(String): void
+  + getRole(): String
+  + setGames_lost(int): void
+  + getGames_won(): int
+  + setName(String): void
+  + setGames_played(int): void
+  + getElo(): int
+  + setGames_won(int): void
+  + getGames_played(): int
+}
+class UserProfileRepository {
+  ~ userDao: UserDao
+  ~ roleDao: RoleDao
+  ~ userProfilesCache: HashMap<UUID, UserProfileDTO>
+  # getUserDao(): UserDao
+  # getRoleDao(): RoleDao
+  # getUserProfilesCache(): HashMap<UUID, UserProfileDTO>
+  - setUserDao(UserDao): void
+  - setRoleDao(RoleDao): void
+  - setUserProfilesCache(HashMap<UUID, UserProfileDTO>): void
+  + updateUser(UserProfileDTO, UserProfileDTO, boolean): Integer
+  + getAll(): ArrayList<UserProfileDTO>
+  + updateUser(String, User): UserProfileDTO
+  + reduceCoinsFor(UserProfileDTO): Integer
+  + getAll(String): ArrayList<UserProfileDTO>
+  + postUser(User): UserProfileDTO
+  + getById(Integer): UserProfileDTO
+  + getByUsername(String): UserProfileDTO
+}
+
+App                      -[#008200,dashed]-^  ServerApp               
+BattleRequestDao         -[#008200,dashed]-^  Dao                     
+CardController           -[#000082,plain]-^  Controller              
+CardDao                  -[#008200,dashed]-^  Dao                     
+CardtypeDao              -[#008200,dashed]-^  Dao                     
+ElementDao               -[#008200,dashed]-^  Dao                     
+GameController           -[#000082,plain]-^  Controller              
+RoleDao                  -[#008200,dashed]-^  Dao                     
+TradeDao                 -[#008200,dashed]-^  Dao                     
+UserController           -[#000082,plain]-^  Controller              
+UserDao                  -[#008200,dashed]-^  Dao                     
+UserProfileRepository    -[#008200,dashed]-^  Repository              
+@enduml
