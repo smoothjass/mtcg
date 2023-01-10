@@ -34,7 +34,6 @@ public class Server {
         int counter = 0;
         while (true) {
             try {
-                //irgendwie werden pro request zwei threads erzeugt, einer mit dem echten request, einer mit null. why? TODO
                 setClientSocket(getServerSocket().accept());
                 // ab hier thread erzeugen, der request handlet. server wartet quasi sofort weiter
                 RequestHandler task = new RequestHandler(this.clientSocket, this.app);

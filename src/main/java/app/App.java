@@ -248,7 +248,6 @@ public class App implements ServerApp {
         if (!authToken.matches("[a-zA-Z0-9]*-mtcgToken")) {
             return null;
         }
-        // TODO check if user is the right user, if not return null
         return authToken.substring(0, authToken.length()-"-mtcgToken".length());
     }
 }

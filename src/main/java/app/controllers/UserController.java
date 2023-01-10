@@ -35,7 +35,7 @@ public class UserController extends Controller {
 
     // GET /user-profiles/:ID
     // We get the ID from the path (e.g. a path variable (:ID))
-    // TODO overload and implement to get by id
+    // TODO if time allows overload and implement to get by id
     public Response getUserProfile(String username) {
         try {
             // our userRepository returns a single UserProfile getByUsername

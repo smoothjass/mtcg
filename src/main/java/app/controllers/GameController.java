@@ -99,7 +99,6 @@ public class GameController extends Controller{
             // carry out the battle
             String content = battle(battleRequest.getUsername(), username);
             setGameLog(content);
-            // TODO persist game outcome to db
             this.notify();
 
             // game was carried out but stats couldn't be written to db for some yet unknown reason:
