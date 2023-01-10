@@ -80,7 +80,7 @@ public class App implements ServerApp {
                     // Retrieves the user data for the username provided in the route.
                     String authUser = getUserFromAuthToken(request.getAuthToken());
                     if (!Objects.equals(authUser, "admin")) {
-                        if (authUser == null) {
+                        if (authUser == null || !authUser.equals(username)) {
                             return new Response(
                                 HttpStatus.UNAUTHORIZED,
                                 ContentType.JSON,
@@ -138,6 +138,7 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/tradings")) {
                     // Retrieves the currently available trading deals.
+                    // not implemented because of poor time management
                 }
             }
             case POST: {
@@ -148,12 +149,13 @@ public class App implements ServerApp {
                 }
                 if (request.getPathname().equals("/sessions")) {
                     // Login with existing user
+                    // returns token if successful
                     return getUserController().login(request.getBody());
                 }
                 if (request.getPathname().equals("/packages")) {
                     // Create new card packages (requires admin)
                     String username = getUserFromAuthToken(request.getAuthToken());
-                    if (username == null) {
+                    if (username == null || !username.equals("admin")) {
                         return new Response(
                             HttpStatus.UNAUTHORIZED,
                             ContentType.JSON,
@@ -197,12 +199,23 @@ public class App implements ServerApp {
                 if (request.getPathname().matches("/tradings/\\d+")) {
                     Integer tradingDealId = parseInt(request.getPathname().split("/")[2]);
                     // Carry out a trade for the deal with the provided card.
+                    // not implemented because of poor time management
                 }
             }
             case PUT: {
                 if (request.getPathname().matches("/users/[a-zA-Z0-9]*")) {
                     // Updates the user data for the given username.
                     String username = request.getPathname().split("/")[2];
+                    String authUser = getUserFromAuthToken(request.getAuthToken());
+                    if (!Objects.equals(authUser, "admin")) {
+                        if (authUser == null || !authUser.equals(username)) {
+                            return new Response(
+                                HttpStatus.UNAUTHORIZED,
+                                ContentType.JSON,
+                                "{ \"data\": null, \"error\": Access token missing or invalid }"
+                            );
+                        }
+                    }
                     return getUserController().updateUser(username, request.getBody());
                 }
                 if (request.getPathname().equals("/decks")) {
@@ -222,6 +235,7 @@ public class App implements ServerApp {
                 if (request.getPathname().matches("/tradings/\\d+")) {
                     Integer tradingDealId = parseInt(request.getPathname().split("/")[2]);
                     // Deletes an existing trading deal.
+                    // not implemented because of poor time management
                 }
             }
         }
