@@ -8,7 +8,6 @@ import app.repositories.BattleRequestRepository;
 import app.repositories.CardRepository;
 import app.repositories.UserProfileRepository;
 import app.services.DatabaseService;
-import com.google.common.annotations.VisibleForTesting;
 import http.ContentType;
 import http.HttpStatus;
 import lombok.AccessLevel;
@@ -33,6 +32,9 @@ public class App implements ServerApp {
     private Connection connection;
     private String sessionUserToken = "";
 
+    public App(boolean testing) {
+        // constructor for unit test that does not set db conn -> does not require db to run for testing
+    }
     // In our app we instantiate all of our DAOs, repositories, and controllers
     // we inject the DAOs to the repos
     // we inject the repos to the controllers
@@ -42,7 +44,6 @@ public class App implements ServerApp {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         // DAOs
         UserDao userDao = new UserDao(getConnection());
         RoleDao roleDao = new RoleDao(getConnection());

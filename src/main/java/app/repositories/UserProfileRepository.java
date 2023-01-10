@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Setter(AccessLevel.PRIVATE)
-@Getter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PROTECTED)
 public class UserProfileRepository implements Repository<UserProfileDTO, Integer> {
     // Source: https://www.baeldung.com/java-dao-vs-repository
     // A DAO is an abstraction of data persistence.

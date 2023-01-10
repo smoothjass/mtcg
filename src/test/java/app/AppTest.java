@@ -13,7 +13,7 @@ public class AppTest {
         String invalidToken = "kalöksdalkj";
         String validToken = "kienboec-mtcgToken";
 
-        App app = new App();
+        App app = new App(true);
 
         String expected2 = "kienboec";
 

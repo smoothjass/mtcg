@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 
 @Setter(AccessLevel.PRIVATE)
-@Getter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PROTECTED)
 public class BattleRequestRepository {
     BattleRequestDao battleRequestDao;
     LinkedHashMap<String, BattleRequest> battleRequestsCache = new LinkedHashMap<>();

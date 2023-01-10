@@ -18,12 +18,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 @Setter(AccessLevel.PRIVATE)
-@Getter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PROTECTED)
 public class CardRepository {
     CardDao cardDao;
     CardtypeDao cardtypeDao;
     ElementDao elementDao;
-
     HashMap<UUID, CardDTO> cardCache = new HashMap<>();
     HashMap<Integer, Cardtype> cardtypeCache = new HashMap<>();
     HashMap<String, Integer> inverseCardtypeCache = new HashMap<>();
