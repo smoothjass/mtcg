@@ -187,6 +187,10 @@ public class App implements ServerApp {
                         );
                     }
                     // the user cannot request a battle if they have no deck configured
+                    // also, if the user does not exist at all, there will be no deck hence
+                    // no battle. But with proper session handling instead of just checking
+                    // the hardcoded tokens, it shouldn't be possible that a non existent user
+                    // requests a battle, so that's fine.
                     Response checkDeck = getCardController().getCardsForUser(username, true, false);
                     if (checkDeck.getStatusCode() != 200) {
                         return checkDeck;

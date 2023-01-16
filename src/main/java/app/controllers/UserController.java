@@ -168,10 +168,17 @@ public class UserController extends Controller {
                         "\"error\": null }"
             );
         }
-        return null;
+        return new Response(
+            HttpStatus.NOT_FOUND,
+            ContentType.JSON,
+            "{\"data\": null, \"error\": user does not exist }"
+        );
     }
 
     public Response getScores() {
+        // eigentlich ist der Plan, die user bereits geordnet aus der DB zu retrieven,
+        // allerdings scheint das nicht so zu funktionieren, wie ich es mir vorstelle
+        // ich hoffe ich bekomme hier Teilpunkte für die Idee! ;D
         ArrayList<UserProfileDTO> users = getUserProfileRepository().getAll("elo");
         ArrayList<String> scores = new ArrayList<String>();
         for(UserProfileDTO userProfile: users) {

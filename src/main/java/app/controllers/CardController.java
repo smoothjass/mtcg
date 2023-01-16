@@ -185,9 +185,9 @@ public class CardController extends Controller {
             }
             getCardRepository().configureDeck(cards);
             return new Response(
-                    HttpStatus.OK,
-                    ContentType.JSON,
-                    "{ \"description\": the deck has been successfully configured, \"data\": null, \"error\": null } "
+                HttpStatus.OK,
+                ContentType.JSON,
+                "{ \"description\": the deck has been successfully configured, \"data\": null, \"error\": null } "
             );
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

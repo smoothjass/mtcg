@@ -33,7 +33,7 @@ public class GameController extends Controller{
         setUserProfileRepository(userProfileRepository);
         setBattleRequestRepository(battleRequestRepository);
 
-        // TODO if time allows it: this should actually get the elements from DB so they are always up to date
+        // TODO if time allows it: this should actually get the elements from DB so they are always up to date when a new element is introduced to the game
         elements.put("fire", 0);
         elements.put("water", 1);
         elements.put("normal", 2);
@@ -65,9 +65,9 @@ public class GameController extends Controller{
                 // game was carried out but stats couldn't be written
                 if (Objects.equals(getGameLog(), "")) {
                     return new Response(
-                            HttpStatus.INTERNAL_SERVER_ERROR,
-                            ContentType.JSON,
-                            "{ \"data\": null, \"error\": internal server error } "
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ContentType.JSON,
+                        "{ \"data\": null, \"error\": internal server error } "
                     );
                 }
 
@@ -82,9 +82,7 @@ public class GameController extends Controller{
             }
         }
         else {
-            // this should never happen if i get around to implement proper session handling with
-            // user state management but i might run out of time and in that case
-            // i don't want a user to be able to fight themselves
+            // a user cannot fight themselves
             if (battleRequests.get(username) != null) {
                 return new Response(
                     HttpStatus.CONFLICT,
@@ -119,7 +117,7 @@ public class GameController extends Controller{
         }
     }
 
-    private String battle(String requestingPlayer, String acceptingPlayer) {
+    protected String battle(String requestingPlayer, String acceptingPlayer) {
         // get players
         UserProfileDTO player1 = getUserProfileRepository().getByUsername(requestingPlayer);
         UserProfileDTO player2 = getUserProfileRepository().getByUsername(acceptingPlayer);
